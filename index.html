@@ -21,6 +21,9 @@ body{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;p
 img{-webkit-user-drag:none}
 .th img,#strip img,#view{pointer-events:none}
 #view{pointer-events:auto}
+body.full header,body.full #sheet,body.full #before,body.full #lookTag,body.full #hint{display:none!important}
+body.full #stage{padding:0}
+body.full #view{border-radius:0;box-shadow:none}
 button,label.ib{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 label.btn{cursor:pointer}
 .hidden{display:none!important}
@@ -79,10 +82,10 @@ header{display:flex;align-items:center;justify-content:space-between;padding:6px
 .th .fav{position:absolute;top:4px;right:4px;font-size:10px;color:var(--acc);text-shadow:0 1px 3px #000}
 .th .sb{position:absolute;left:4px;bottom:24px;font-size:10px;padding:1px 5px;border-radius:5px;background:#000b;color:#fff}
 .th .plus{font-size:26px;font-weight:300;color:var(--mute)}
-.lookbar{display:flex;align-items:center;gap:10px;padding:6px 14px 2px}
+.lookbar{display:flex;align-items:center;gap:8px;padding:6px 12px 2px 16px}
 .lookbar b{font-size:13px;font-weight:600;flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
 .lookbar input{flex:1;min-width:0}
-.lookbar #sv{flex:0 0 auto;width:40px;text-align:right;white-space:nowrap}
+.lookbar #sv{flex:0 0 auto;width:38px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .lookbar .tb{flex:0 0 auto;width:34px;height:34px;border-radius:10px;background:var(--card);display:inline-flex;align-items:center;justify-content:center;color:var(--mute);font-size:15px}
 .lookbar .tb.on{color:var(--acc)}
 .lookbar .tb svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -155,7 +158,7 @@ nav button.on{color:var(--text)}
   <canvas id="view" class="hidden"></canvas>
   <div class="pill hidden" id="lookTag"></div>
   <button class="pill hidden" id="before">Vorher</button>
-  <div class="pill hidden" id="hint">Bild gedrückt halten = Vorher</div>
+  <div class="pill hidden" id="hint">Tippen = Vollbild · Halten = Vorher</div>
   <div id="flash"></div>
   <div id="busy"></div>
 </div>
@@ -546,13 +549,14 @@ function drawMaskOverlay(){
 function busy(on){$('#busy').classList.toggle('on',on)}
 function layout(){
   if(!src)return;
-  const r=aspect(),b=$('#stage').getBoundingClientRect(),bw=b.width-20,bh=b.height-8;
+  const full=document.body.classList.contains('full'),r=aspect(),b=$('#stage').getBoundingClientRect(),bw=b.width-(full?0:20),bh=b.height-(full?0:8);
   let cw=bw,ch=cw/r;if(ch>bh){ch=bh;cw=ch*r}
   view.style.width=cw+'px';view.style.height=ch+'px';
-  const W=Math.min(720,Math.round(cw*Math.min(devicePixelRatio||1,2)));
+  const W=Math.min(full?1080:720,Math.round(cw*Math.min(devicePixelRatio||1,2)));
   view.width=W;view.height=Math.round(W/r);render();
 }
 addEventListener('resize',layout);
+function toggleFull(){document.body.classList.toggle('full');layout();vib()}
 function lookName(){if(st.custom){const c=customs.find(c=>c.id===st.custom);if(c)return c.n}return st.preset?PRESETS[st.preset].n:'Eigene Anpassung'}
 function updateTag(){
   const t=$('#lookTag'),adj=KEYS.some(k=>st.adj[k]);
@@ -605,10 +609,15 @@ function moveStroke(e){
 let maskT;
 function endStroke(){if(!stroke)return;stroke=null;ringAt(null,false);render();clearTimeout(maskT);
   maskT=setTimeout(()=>{if(!stroke&&!br.keepMask){showMask=false;render()}},600);renderStrip();if(st.tab==='brush')pBrush()}
-view.addEventListener('pointerdown',e=>{e.preventDefault();if(st.tab==='brush')startStroke(e);else beforeOn()});
-view.addEventListener('pointermove',e=>{if(stroke)moveStroke(e)});
-['pointerup','pointercancel'].forEach(t=>view.addEventListener(t,()=>{if(stroke)endStroke();else beforeOff()}));
-view.addEventListener('pointerleave',()=>{if(!stroke)beforeOff()});
+let press=null;
+view.addEventListener('pointerdown',e=>{e.preventDefault();
+  if(st.tab==='brush'&&!document.body.classList.contains('full')){startStroke(e);return}
+  press={x:e.clientX,y:e.clientY,t:setTimeout(()=>{if(press){press.held=true;beforeOn()}},180)}});
+view.addEventListener('pointermove',e=>{if(stroke){moveStroke(e);return}
+  if(press&&!press.held&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>12){clearTimeout(press.t);press=null}});
+['pointerup','pointercancel'].forEach(t=>view.addEventListener(t,e=>{if(stroke){endStroke();return}
+  if(press){clearTimeout(press.t);const tap=!press.held&&e.type==='pointerup';press=null;if(tap)toggleFull();else beforeOff()}else beforeOff()}));
+view.addEventListener('pointerleave',()=>{if(!stroke&&press){clearTimeout(press.t);press=null;beforeOff()}});
 function undoStroke(){const p=photos[cur];const s=p&&p.undo.pop();if(!s)return;const M=p.masks;
   s.forEach(o=>{M[o.k].getContext('2d').putImageData(o.d,0,0);M[o.k]._u=o.u});render();renderStrip();pBrush();vib()}
 function clearMasks(){const p=photos[cur],M=p.masks;p.undo.push(MASKS.map(k=>({k,d:M[k].getContext('2d').getImageData(0,0,M[k].width,M[k].height),u:M[k]._u})));
@@ -691,7 +700,7 @@ function pFilter(){
   const cu=st.custom&&customs.find(c=>c.id===st.custom);
   const name=cu?cu.n:(st.preset?PRESETS[st.preset].n:'');
   panel.innerHTML='<div class="row" id="cr"></div><div class="row" id="tr"></div>'+
-   ((st.preset||cu)?`<div class="lookbar"><b>${esc(name)}</b><input type="range" id="ss" min="0" max="100" step="1"><span class="mini" id="sv"></span>`+
+   ((st.preset||cu)?`<div class="lookbar"><input type="range" id="ss" min="0" max="100" step="1" aria-label="Stärke ${esc(name)}"><span class="mini" id="sv"></span>`+
      (st.preset&&!cu?`<button class="tb${isFav(st.preset)?' on':''}" id="fb" title="Favorit">${isFav(st.preset)?'★':'☆'}</button>`:'')+
      `<button class="tb" id="svb" title="Als eigenen Look speichern">${ICON_SAVE}</button></div>`
      :'<div class="lookbar"><span class="mini">Look antippen · gedrückt halten = Favorit</span></div>');
