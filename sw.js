@@ -1,5 +1,5 @@
 // Atelier – Service Worker: App-Dateien Netzwerk zuerst, KI-Modell (jsDelivr) aus dem Cache
-const CACHE = 'atelier-v13';
+const CACHE = 'atelier-v14';
 const LIB = 'atelier-lib-v1';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
