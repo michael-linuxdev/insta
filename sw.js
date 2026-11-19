@@ -1,5 +1,5 @@
 // Atelier – Service Worker: Netzwerk zuerst, offline aus dem Cache
-const CACHE = 'atelier-v10';
+const CACHE = 'atelier-v11';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

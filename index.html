@@ -1061,7 +1061,7 @@ function setTab(t){
 function setFill(el){const mn=+el.min,mx=+el.max,v=+el.value,p=(v-mn)/(mx-mn)*100,z=(0-mn)/(mx-mn)*100;el.style.setProperty('--f',p+'%');el.style.setProperty('--s',(mn<0?z:0)+'%')}
 const ICON_SAVE='<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>';
 function pFilter(){
-  const sx=$('#tr')?$('#tr').scrollLeft:null;
+  const sx=$('#tr')?$('#tr').scrollLeft:null,cx=$('#cr')?$('#cr').scrollLeft:null;
   const packs=[...new Set(customs.filter(c=>c.pk).map(c=>c.pk))];
   const cats=['Vorschläge','Alle'].concat(customs.some(c=>!c.pk)?['Eigene']:[],packs.map(p=>'pk:'+p),favs.length?['Favoriten']:[],CATS.slice(1));
   if(!cats.includes(st.cat))st.cat='Alle';
@@ -1096,7 +1096,8 @@ function pFilter(){
     ss.onchange=()=>{render();commit();pFilter()};
     ss.ondblclick=()=>{st.strength=100;render();commit();pFilter()};
     if($('#fb'))$('#fb').onclick=()=>toggleFav(st.preset);$('#svb').onclick=saveLook;}
-  const cr=$('#cr'),con=cr.querySelector('.on');if(con&&sx===null)cr.scrollLeft=Math.max(0,con.offsetLeft-20);
+  const cr=$('#cr'),con=cr.querySelector('.on');if(cx!==null)cr.scrollLeft=cx;
+  if(con){const l=con.offsetLeft,r=l+con.offsetWidth;if(cx===null||l<cr.scrollLeft+8||r>cr.scrollLeft+cr.clientWidth-8)cr.scrollLeft=Math.max(0,l-40)}
 }
 const GROUPS=[
  {n:'Licht',k:['exposure','contrast','highlights','shadows']},
