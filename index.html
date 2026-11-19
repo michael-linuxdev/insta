@@ -76,7 +76,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:6px
 .chip{flex:0 0 auto;padding:7px 13px;border-radius:999px;background:var(--card);font-size:13px;font-weight:500;color:var(--mute);position:relative;display:inline-flex;align-items:center;gap:6px}
 .chip.on{color:#111;background:var(--text)}
 .chip .dot,.tdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--acc)}
-.th{flex:0 0 auto;width:74px;text-align:center;font-size:11px;letter-spacing:-.01em;font-weight:500;color:var(--mute);position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.th{flex:0 0 auto;width:74px;text-align:center;font-size:11px;letter-spacing:-.01em;font-weight:500;color:var(--mute);position:relative;overflow:visible}
 .th .im{width:74px;height:90px;border-radius:8px;overflow:hidden;background:#222;outline:1.5px solid transparent;outline-offset:2px;margin-bottom:6px;display:flex;align-items:center;justify-content:center}
 .th img{width:100%;height:100%;object-fit:cover;display:block}
 .th.on{color:var(--text)}.th.on .im{outline-color:var(--text)}
@@ -140,7 +140,8 @@ nav button.on{color:var(--text)}
 #view{transform-origin:center center;will-change:transform}
 #zoomReset{left:50%;bottom:14px;transform:translateX(-50%);pointer-events:auto}
 .th .im{position:relative;outline:none!important}
-.th.on .im::after{content:"";position:absolute;inset:0;border:2px solid var(--text);border-radius:8px;pointer-events:none}
+.th.on .im::after{content:"";position:absolute;inset:0;z-index:1;border-radius:8px;box-shadow:inset 0 0 0 2px var(--text);pointer-events:none}
+.th .im{transform:translateZ(0)}
 .th .lb{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .th .im:empty{background:linear-gradient(100deg,#202022 30%,#2a2a2d 50%,#202022 70%);background-size:300% 100%;animation:sh 1.2s linear infinite}
 @keyframes sh{to{background-position:-150% 0}}
