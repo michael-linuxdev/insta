@@ -10,7 +10,8 @@ Läuft komplett im Browser, Fotos verlassen das Gerät nicht.
 - Hautschutz, Haut glätten, Farbsteuerung pro Farbbereich
 - Eigene Looks speichern, als Link teilen, Backup/Import; Favoriten
 - Stapelbearbeitung (bis 30 Fotos), eigener Look pro Foto, Stapel angleichen
-- Retusche: Reparieren, Aufhellen, Abdunkeln, Glätten, Radierer – mit Zoom
+- Retusche: Reparieren, Augen, Zähne, Aufhellen, Abdunkeln, Glätten, Radierer – mit Zoom
+- Zuschnitt: Beitrag, Story, Profilbild
 - Feed planen (Drag & Drop), Vorher/Nachher-Bild, Look als .cube-LUT für Videos
 - Export Feed (1080 px) oder Original; Sitzung bleibt nach dem Schließen erhalten
 - Schnelle Vorschau per WebGL, installierbar und offline nutzbar

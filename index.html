@@ -177,6 +177,12 @@ nav button.on{color:var(--text)}
 .ccard small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);font-weight:600}
 .ccard b{font-size:17px;font-weight:600}
 .ccard p{margin:0;color:#cfccc6;font-size:14px;line-height:1.5}
+.fmt{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding:8px 10px 6px;border-radius:12px;color:var(--mute);min-width:80px;height:92px}
+.fmt span{font-size:13px;font-weight:500}
+.fmt small{font-size:10px;opacity:.75;margin-top:-3px;white-space:nowrap}
+.fmt .box{border:1.5px solid currentColor;border-radius:3px}
+.fmt .box.rnd{border-radius:50%}
+.fmt.on{color:var(--text);background:var(--card)}
 </style>
 </head>
 <body>
@@ -223,7 +229,7 @@ nav button.on{color:var(--text)}
   <nav id="nav">
     <button data-tab="filter"><svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>Looks</button>
     <button data-tab="adjust"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Anpassen</button>
-    <button data-tab="local"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v16" stroke-dasharray="2 2.5"/><circle cx="12" cy="12" r="3"/></svg>Lokal</button>
+    <button data-tab="crop"><svg viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>Zuschnitt</button>
     <button data-tab="brush"><svg viewBox="0 0 24 24"><path d="M14.5 4.5l5 5L10 19H5v-5z"/><path d="M12.5 6.5l5 5"/></svg>Retusche</button>
   </nav>
 </div>
@@ -473,7 +479,7 @@ function presetParams(i){return params({preset:i,strength:100,adj:ZERO})}
 function hasMix(m){return !!m&&Object.entries(m).some(([k,v])=>k[0]!=='_'&&v&&(v[0]||v[1]||v[2]))}
 const isIdCurve=pts=>!pts||pts.length<2||pts.every(p=>Math.abs(p[0]-p[1])<1);
 function hasCurve(m){const c=m&&m._curve;return !!c&&['rgb','r','g','b'].some(k=>c[k]&&!isIdCurve(c[k]))}
-function isNeutral(P){return KEYS.every(k=>!P[k])&&!P.hsl&&!hasMix(P.mix)&&!P.ucurve&&!P.loc&&!P.skinShift&&!P.sh&&!P.hi&&!P.bw&&!P.c.rgb&&!P.c.r&&!P.c.g&&!P.c.b}
+function isNeutral(P){return KEYS.every(k=>!P[k])&&!P.hsl&&!hasMix(P.mix)&&!P.ucurve&&!P.skinShift&&!P.sh&&!P.hi&&!P.bw&&!P.c.rgb&&!P.c.r&&!P.c.g&&!P.c.b}
 function buildLUTs(P){
   const c=P.contrast/100,f=P.fade/100,k=P.k,rgb=cLUT(P.c.rgb),ch=[cLUT(P.c.r),cLUT(P.c.g),cLUT(P.c.b)];
   const U=P.ucurve,uc=k2=>U&&U[k2]&&!isIdCurve(U[k2])?curveLUT([...U[k2]].sort((a,b)=>a[0]-b[0])):null,Ur=uc('rgb'),Uc=[uc('r'),uc('g'),uc('b')];
@@ -526,16 +532,11 @@ function makeBlur(cv,W,H,div){
   return y.getImageData(0,0,W,H).data;
 }
 function maskArr(mc,W,H){if(!mc||!mc._u)return null;const c=document.createElement('canvas');c.width=W;c.height=H;
-  const x=c.getContext('2d',{willReadFrequently:true});x.imageSmoothingEnabled=true;x.drawImage(mc,0,0,W,H);return x.getImageData(0,0,W,H).data}
+  const x=c.getContext('2d',{willReadFrequently:true});x.imageSmoothingEnabled=true;const T=cropT,mw=mc.width,mh=mc.height;x.drawImage(mc,T.x*mw,T.y*mh,T.w*mw,T.h*mh,0,0,W,H);return x.getImageData(0,0,W,H).data}
 function process(cv,ctx,W,H,P,M){
   const mL=M?maskArr(M.light,W,H):null,mD=M?maskArr(M.dark,W,H):null,mS=M?maskArr(M.smooth,W,H):null,mE=M?maskArr(M.eyes,W,H):null,mT=M?maskArr(M.teeth,W,H):null;
   if(isNeutral(P)&&!mL&&!mD&&!mS&&!mE&&!mT)return;
   const shp=(P.sharpen||0)/100,dn=(P.denoise||0)/100,bF=(shp||dn)?makeBlur(cv,W,H,1):null,shThr=2+dn*6;
-  const LOC=P.loc||{},FL=(LOC.filters||[]).filter(f=>f.exp||f.con||f.warm||f.sat),SG=LOC.seg&&LOC.seg.c&&LOC.seg.a?LOC.seg:null;
-  const sA=SG?maskArr(SG.c,W,H):null,sBg=SG?SG.a.bgBlur/100:0,bBg=sBg&&sA?makeBlur(cv,W,H,Math.max(3,W/60)):null;
-  const sBe=SG?Math.pow(2,SG.a.bgExp/100*1.2)-1:0,sPe=SG?Math.pow(2,SG.a.pExp/100*1.2)-1:0,sBs=SG?SG.a.bgSat/100:0;
-  const FP=FL.map(f=>f.t==='lin'?{lin:1,x0:f.x0,y0:f.y0,dx:f.x1-f.x0,dy:f.y1-f.y0,l2:Math.max(1e-6,(f.x1-f.x0)**2+(f.y1-f.y0)**2),f}
-    :{lin:0,cx:f.cx,cy:f.cy,rx:Math.max(.01,f.rx),ry:Math.max(.01,f.ry),fe:Math.max(.02,f.fe),inv:f.inv,f});
   const id=ctx.getImageData(0,0,W,H),d=id.data;
   const sm=P.smooth/100,cl=P.clarity/100,gl=P.glow/100;
   const bS=(sm||cl||mS)?makeBlur(cv,W,H,Math.max(2,W/280)):null;
@@ -555,7 +556,6 @@ function process(cv,ctx,W,H,P,M){
       if(dn){const e=1-Math.abs((r+g+b)-(R+G+B))/60;if(e>0){const t=dn*e*.7;r+=(R-r)*t;g+=(G-g)*t;b+=(B-b)*t}
         const L=.299*r+.587*g+.114*b,LB=.299*R+.587*G+.114*B,t2=dn*.8;r+=((R-LB)-(r-L))*t2;g+=((G-LB)-(g-L))*t2;b+=((B-LB)-(b-L))*t2}
       if(shp){let dl=(.299*r+.587*g+.114*b)-(.299*R+.587*G+.114*B);if(dl>shThr||dl<-shThr){dl*=shp*1.8;r+=dl;g+=dl;b+=dl}}}
-    if(bBg){const t=(1-sA[i+3]/255)*sBg;if(t){r+=(bBg[i]-r)*t;g+=(bBg[i+1]-g)*t;b+=(bBg[i+2]-b)*t}}
     if(needSkin){const cb=128-.168736*r-.331264*g+.5*b,cr=128+.5*r-.418688*g-.081312*b;
       const m=(1-Math.abs(cr-152)/24)*(1-Math.abs(cb-110)/26);skin=m>0?(m*2>1?1:m*2):0;if(sk&&skin){r+=sk[0]*skin;g+=sk[1]*skin;b+=sk[2]*skin}}
     if(bS){const R=bS[i],G=bS[i+1],B=bS[i+2];
@@ -570,15 +570,6 @@ function process(cv,ctx,W,H,P,M){
     if(mD){const m=mD[i+3]/255;if(m){const f=1-m*.38;r*=f;g*=f;b*=f}}
     if(mE){const m=mE[i+3]/255;if(m){const f=1+m*.2,L=.299*r+.587*g+.114*b,s=1+m*.25;r=(L+(r-L)*s)*f;g=(L+(g-L)*s)*f;b=(L+(b-L)*s)*f}}
     if(mT){const m=mT[i+3]/255;if(m){const L=.299*r+.587*g+.114*b;r+=(L-r)*m*.7;g+=(L-g)*m*.7;b+=(L-b)*m*.7+m*4;r+=(255-r)*m*.12;g+=(255-g)*m*.12;b+=(255-b)*m*.13}}
-    if(FP.length){const nx=x/W,ny=y/H;for(let q=0;q<FP.length;q++){const o=FP[q];let w;
-      if(o.lin){let t=((nx-o.x0)*o.dx+(ny-o.y0)*o.dy)/o.l2;t=t<0?0:t>1?1:t;w=1-t*t*(3-2*t)}
-      else{const ex=(nx-o.cx)/o.rx,ey=(ny-o.cy)/o.ry,dd=Math.sqrt(ex*ex+ey*ey);w=dd<=1-o.fe?1:dd>=1?0:(1-(dd-(1-o.fe))/o.fe);w=w*w*(3-2*w);if(o.inv)w=1-w}
-      if(w<.002)continue;const f=o.f;
-      if(f.exp){const e=Math.pow(2,f.exp/100*1.2*w);r*=e;g*=e;b*=e}
-      if(f.warm){r*=1+f.warm/100*.12*w;b*=1-f.warm/100*.12*w}
-      if(f.con){const c=1+f.con/100*.6*w;r=128+(r-128)*c;g=128+(g-128)*c;b=128+(b-128)*c}
-      if(f.sat){const L=.299*r+.587*g+.114*b,s=1+f.sat/100*w;r=L+(r-L)*s;g=L+(g-L)*s;b=L+(b-L)*s}}}
-    if(sA&&(sBe||sPe||sBs)){const m=sA[i+3]/255,e=1+sBe*(1-m)+sPe*m;r*=e;g*=e;b*=e;if(sBs){const L=.299*r+.587*g+.114*b,s=1+sBs*(1-m);r=L+(r-L)*s;g=L+(g-L)*s;b=L+(b-L)*s}}
     if(sat!==1||vib){const mx=Math.max(r,g,b),mn=Math.min(r,g,b),s=(mx-mn)/255,L=.299*r+.587*g+.114*b;
       let f=sat+vib*(1-s)*(1-skin*.7);if(P.sat>0)f=1+(sat-1)*(1-skin*.5)+vib*(1-s)*(1-skin*.7);
       r=L+(r-L)*f;g=L+(g-L)*f;b=L+(b-L)*f}
@@ -598,14 +589,18 @@ function process(cv,ctx,W,H,P,M){
   }}
   ctx.putImageData(id,0,0);
 }
-function aspect(){const f=FORMATS.find(f=>f.id===st.fmt);return f.r||src.width/src.height}
+const CROPF=[{id:'orig',n:'Original',sub:'unverändert',r:null},{id:'post',n:'Beitrag',sub:'4:5',r:4/5,W:1080},{id:'story',n:'Story',sub:'9:16',r:9/16,W:1080},{id:'avatar',n:'Profilbild',sub:'1:1 · rund',r:1,W:1080,round:true}];
+let cropT={x:0,y:0,w:1,h:1};
+function cropOf(p){return p&&p.crop&&p.crop.fmt!=='orig'?p.crop:null}
+function cropRect(p,iw,ih){const c=cropOf(p);if(!c)return{x:0,y:0,w:1,h:1};const f=CROPF.find(f=>f.id===c.fmt);if(!f||!f.r)return{x:0,y:0,w:1,h:1};
+  let bw,bh;if(iw/ih>f.r){bh=ih;bw=ih*f.r}else{bw=iw;bh=iw/f.r}const z=Math.max(1,c.z||1),sw=bw/z,sh=bh/z;
+  const cx=clamp((c.cx??.5)*iw,sw/2,iw-sw/2),cy=clamp((c.cy??.5)*ih,sh/2,ih-sh/2);return{x:(cx-sw/2)/iw,y:(cy-sh/2)/ih,w:sw/iw,h:sh/ih}}
+function aspect(){const p=photos[cur],c=cropOf(p);if(c){const f=CROPF.find(f=>f.id===c.fmt);if(f&&f.r)return f.r}return src.width/src.height}
 function compose(ctx,W,H,raw){
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
-  const iw=src.width,ih=src.height,sc=Math.max(W/iw,H/ih)*st.zoom,dw=iw*sc,dh=ih*sc;
-  const mx=(dw-W)/2/W,my=(dh-H)/2/H;
-  st.px=clamp(st.px,-mx,mx);st.py=clamp(st.py,-my,my);
+  const iw=src.width,ih=src.height,R=cropRect(photos[cur],iw,ih);cropT=R;
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-  ctx.drawImage(src,(W-dw)/2+st.px*W,(H-dh)/2+st.py*H,dw,dh);
+  ctx.drawImage(src,R.x*iw,R.y*ih,R.w*iw,R.h*ih,0,0,W,H);
   if(!raw)process(ctx.canvas,ctx,W,H,effParams(),curMasks());
 }
 
@@ -637,8 +632,7 @@ function lookOf(i){const p=photos[i];return p&&p.look?p.look:gLook}
 function storeLook(){const l=curLook();if(photos[cur]&&photos[cur].look)photos[cur].look=l;else gLook=l}
 function loadLook(i){Object.assign(st,cloneLook(lookOf(i)))}
 function curMasks(){const p=photos[cur];return p&&p.masks}
-function effParams(){const P=params(),p=photos[cur],m=p&&p.match;if(m){P.exposure+=m.exposure;P.warm+=m.warm;P.tint+=m.tint}if(p&&p.skin)P.skinShift=p.skin;
-  if(p&&((p.filters&&p.filters.length)||(p.seg&&p.sega)))P.loc={filters:p.filters||[],seg:p.seg&&p.sega?{c:p.seg,a:p.sega}:null};return P}
+function effParams(){const P=params(),p=photos[cur],m=p&&p.match;if(m){P.exposure+=m.exposure;P.warm+=m.warm;P.tint+=m.tint}if(p&&p.skin)P.skinShift=p.skin;return P}
 /* Rendern mit Look/Quelle eines anderen Fotos (Export, Feed) */
 async function withPhoto(i,srcC,fn){const ks=src,kc=cur,kl=curLook();src=srcC;cur=i;loadLook(i);try{return await fn()}finally{src=ks;cur=kc;Object.assign(st,cloneLook(kl))}}
 
@@ -647,13 +641,13 @@ let metaT=0,restoring=false;
 const lookToStore=l=>({preset:PRESETS[l.preset]?PRESETS[l.preset].n:'Original',strength:l.strength,adj:l.adj,custom:l.custom,mix:l.mix||{}});
 const lookFromStore=s=>{let i=PRESETS.findIndex(p=>p.n===(s&&s.preset));if(i<0)i=0;return{preset:i,strength:s&&s.strength!=null?s.strength:100,adj:{...ZERO,...(s&&s.adj||{})},custom:s&&s.custom||null,mix:cloneMix(s&&s.mix)}};
 function saveMeta(now){if(restoring)return;clearTimeout(metaT);const f=()=>{storeLook();DB.set('meta',{v:2,ids:photos.map(p=>p.id),cur,g:lookToStore(gLook),
-  ui:{cat:st.cat,tab:st.tab},per:Object.fromEntries(photos.map(p=>[p.id,{look:p.look?lookToStore(p.look):null,match:p.match||null,skin:p.skin||null,rot:p.rot||0,heals:p.heals||[],filters:p.filters||[],sega:p.sega||null}]))})};
+  ui:{cat:st.cat,tab:st.tab},per:Object.fromEntries(photos.map(p=>[p.id,{look:p.look?lookToStore(p.look):null,match:p.match||null,skin:p.skin||null,rot:p.rot||0,heals:p.heals||[],crop:p.crop||null}]))})};
   if(now)f();else metaT=setTimeout(f,250)}
 const toBlobP=(c,t,q)=>new Promise(r=>{try{c.toBlob(r,t,q)}catch(_){r(null)}});
 async function savePhoto(p){if(!p)return;const masks={};
   if(p.masks){for(const k of MASKS)masks[k]=p.masks[k]._u?await toBlobP(p.masks[k],'image/png'):null}else if(p.mb)Object.assign(masks,p.mb);
-  p.mb=masks;if(p.seg)p.sb=await toBlobP(p.seg,'image/png');await DB.set('p:'+p.id,{file:p.file,name:p.name||'',masks,seg:p.sb||null})}
-async function loadMaskBlobs(p){if(p.sb&&!p.seg){try{const c=await decode(p.sb,2000);c._u=true;p.seg=c}catch(_){}}if(!p.mb||p._mbDone)return;p._mbDone=true;
+  p.mb=masks;await DB.set('p:'+p.id,{file:p.file,name:p.name||'',masks})}
+async function loadMaskBlobs(p){if(!p.mb||p._mbDone)return;p._mbDone=true;
   for(const k of MASKS){const b=p.mb[k];if(!b)continue;try{const c=await decode(b,4000),m=p.masks[k],x=m.getContext('2d');x.clearRect(0,0,m.width,m.height);x.drawImage(c,0,0,m.width,m.height);m._u=true}catch(_){}}}
 addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveMeta(true)});
 addEventListener('pagehide',()=>saveMeta(true));
@@ -662,10 +656,10 @@ async function restoreSession(){
   const per=m.per||{};
   for(const id of m.ids){const r=await DB.get('p:'+id);if(!r||!r.file)continue;
     try{const sm=await decode(r.file,360),x=per[id]||{};
-      photos.push(newPhoto({id,file:r.file,name:r.name,small:sm,mb:r.masks||null,look:x.look?lookFromStore(x.look):null,match:x.match||null,skin:x.skin||null,rot:x.rot||0,heals:x.heals||[],filters:x.filters||[],sega:x.sega||null,sb:r.seg||null}))}catch(_){}}
+      photos.push(newPhoto({id,file:r.file,name:r.name,small:sm,mb:r.masks||null,look:x.look?lookFromStore(x.look):null,match:x.match||null,skin:x.skin||null,rot:x.rot||0,heals:x.heals||[],crop:x.crop||null}))}catch(_){}}
   if(!photos.length){restoring=false;busy(false);DB.del('meta');return false}
   gLook=lookFromStore(m.g||m.st);const ui=m.ui||m.st||{};
-  st.cat=ui.cat||'Alle';st.tab=['filter','adjust','brush','local'].includes(ui.tab)?ui.tab:'filter';
+  st.cat=ui.cat||'Alle';st.tab=['filter','adjust','brush','crop'].includes(ui.tab)?ui.tab:'filter';
   await select(Math.min(m.cur||0,photos.length-1));restoring=false;saveMeta();
   toast(photos.length>1?`Letzte Bearbeitung wiederhergestellt (${photos.length} Fotos)`:'Letzte Bearbeitung wiederhergestellt');return true;
 }
@@ -684,7 +678,7 @@ function rotateCrop(c,deg){if(!deg)return cloneCanvas(c);const w=c.width,h=c.hei
 function cloneCanvas(c){const o=document.createElement('canvas');o.width=c.width;o.height=c.height;o.getContext('2d').drawImage(c,0,0);return o}
 function makeMasks(c){const L=640,r=c.width/c.height,w=r>=1?L:Math.round(L*r),h=r>=1?Math.round(L/r):L,o={};
   MASKS.forEach(k=>{const m=document.createElement('canvas');m.width=w;m.height=h;m._u=false;o[k]=m});return o}
-function newPhoto(o){const p={id:o.id||uid(),file:o.file,name:o.name||'',small:o.small,masks:null,mb:o.mb||null,undo:[],look:o.look||null,match:o.match||null,skin:o.skin||null,rot:o.rot||0,heals:o.heals||[],filters:o.filters||[],sega:o.sega||null,sb:o.sb||null,seg:null};
+function newPhoto(o){const p={id:o.id||uid(),file:o.file,name:o.name||'',small:o.small,masks:null,mb:o.mb||null,undo:[],look:o.look||null,match:o.match||null,skin:o.skin||null,rot:o.rot||0,heals:o.heals||[],crop:o.crop||null};
   p.smallH=applyHeals(rotateCrop(p.small,p.rot),p.heals);p.thumb=cover(p.smallH,88,110,.3).toDataURL('image/jpeg',.8);p.sugg=suggest(p.small);return p}
 async function decodeEdited(p,max){const c=await decode(p.file,max);const r=rotateCrop(c,p.rot);if(r!==c)c.width=c.height=0;applyHeals(r,p.heals);return r}
 let srcBase=null;
@@ -787,7 +781,7 @@ function mkLut(cs){const c=document.createElement('canvas');c.width=LN*LN;c.heig
   d.data[i]=Math.round(r*255/(LN-1));d.data[i+1]=Math.round(g*255/(LN-1));d.data[i+2]=Math.round(b*255/(LN-1));d.data[i+3]=255}return{c,x,d}}
 const LUTW=mkLut(CS),LUTS=CS==='srgb'?LUTW:mkLut('srgb');const lutC=LUTW.c,lutX=LUTW.x;
 let lutKey='';
-function lutFor(P,L=LUTW){const Q={...P,smooth:0,clarity:0,glow:0,vignette:0,grain:0,sharpen:0,denoise:0,skinShift:null,loc:null};L.x.putImageData(L.d,0,0);process(L.c,L.x,LN*LN,LN,Q,null);return L.c}
+function lutFor(P,L=LUTW){const Q={...P,smooth:0,clarity:0,glow:0,vignette:0,grain:0,sharpen:0,denoise:0,skinShift:null};L.x.putImageData(L.d,0,0);process(L.c,L.x,LN*LN,LN,Q,null);return L.c}
 let glCS='srgb';
 const GL=(()=>{let c,gl,pr,ok=false;const T={},U={};
   const VS='attribute vec2 p;varying vec2 v;void main(){v=vec2(p.x*.5+.5,.5-p.y*.5);gl_Position=vec4(p,0.,1.);}';
@@ -834,10 +828,10 @@ function blurSmall(cv,W,H,div){const w=Math.max(4,Math.round(W/div)),h=Math.max(
   const x=s.getContext('2d',{willReadFrequently:true});x.imageSmoothingQuality='high';x.drawImage(cv,0,0,w,h);const id=x.getImageData(0,0,w,h);boxBlur(id.data,w,h);boxBlur(id.data,w,h);x.putImageData(id,0,0);return s}
 function glRender(W,H){
   const P=effParams();
-  if(glDirty){glImgC=document.createElement('canvas');glImgC.width=W;glImgC.height=H;const x=glImgC.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(src,0,0,W,H);
+  if(glDirty){glImgC=document.createElement('canvas');glImgC.width=W;glImgC.height=H;const x=glImgC.getContext('2d');x.imageSmoothingQuality='high';const R=cropRect(photos[cur],src.width,src.height);cropT=R;x.drawImage(src,R.x*src.width,R.y*src.height,R.w*src.width,R.h*src.height,0,0,W,H);
     GL.tex('uI',glImgC);GL.tex('uB',blurSmall(glImgC,W,H,Math.max(2,W/280)));GL.tex('uG',blurSmall(glImgC,W,H,Math.max(3,W/50)));glDirty=false;glMaskDirty=true}
   const M=curMasks();
-  if(glMaskDirty&&M){MASKS.forEach(k=>GL.tex({light:'uML',dark:'uMD',smooth:'uMS'}[k],M[k]));glMaskDirty=false}
+  if(glMaskDirty&&M){const T=cropRect(photos[cur],1,1);['light','dark','smooth'].forEach(k=>{const m=M[k];let t=m;if(T.w<1||T.h<1){t=document.createElement('canvas');t.width=Math.max(2,Math.round(m.width*T.w));t.height=Math.max(2,Math.round(m.height*T.h));t.getContext('2d').drawImage(m,T.x*m.width,T.y*m.height,T.w*m.width,T.h*m.height,0,0,t.width,t.height)}GL.tex({light:'uML',dark:'uMD',smooth:'uMS'}[k],t)});glMaskDirty=false}
   const key=JSON.stringify([P.k,P.c,P.bw,P.hsl,P.mix,P.sh,P.hi,KEYS.filter(k=>!['smooth','clarity','glow','vignette','grain','sharpen','denoise'].includes(k)).map(k=>P[k])]);
   if(key!==lutKey){GL.tex('uL',lutFor(P,glCS===CS?LUTW:LUTS));lutKey=key}
   return GL.draw(W,H,{sm:P.smooth/100,cl:P.clarity/100,gl:P.glow/100,vg:P.vignette/100,gr:P.grain*.5,ol:M&&M.light._u?1:0,od:M&&M.dark._u?1:0,os:M&&M.smooth._u?1:0,sk:P.skinShift});
@@ -849,13 +843,13 @@ let glOn=useGL;
 function render(fast){
   if(!src)return;wantFast=raf?wantFast&&!!fast:!!fast;if(raf)return;
   raf=requestAnimationFrame(()=>{raf=0;const W=view.width,H=view.height;
-    const P0=effParams(),M0=curMasks();const jsOnly=P0.sharpen||P0.denoise||P0.loc||(M0&&(M0.eyes._u||M0.teeth._u));
+    const P0=effParams(),M0=curMasks();const jsOnly=P0.sharpen||P0.denoise||(M0&&(M0.eyes._u||M0.teeth._u));
     if(glOn&&!st.before&&!jsOnly){try{const c=glRender(W,H);vctx.drawImage(c,0,0);busy(false)}catch(e){glOn=false;GL.off();render();return}}
     else if(wantFast&&!st.before){lowC.width=W>>1;lowC.height=H>>1;
       compose(lowC.getContext('2d',{willReadFrequently:true}),lowC.width,lowC.height,false);
       vctx.imageSmoothingQuality='high';vctx.drawImage(lowC,0,0,W,H);clearTimeout(fullT);fullT=setTimeout(()=>render(false),170);busy(true)}
     else{compose(vctx,W,H,st.before);busy(false)}
-    drawMaskOverlay();drawLocalOverlay();updateTag();
+    drawMaskOverlay();drawCropOverlay();updateTag();
   });
 }
 const MCOL={light:'#ffd27a',dark:'#6f9dff',smooth:'#f08bb8',eyes:'#7fe0c0',teeth:'#e9e9ff'};
@@ -935,8 +929,9 @@ function dab(M,x,y,r){
 }
 function ringAt(e,show){const ring=$('#ring');if(!show){ring.style.display='none';return}
   const d=screenD()*(br.tool==='heal'?.7:1);ring.style.width=ring.style.height=d+'px';ring.style.left=e.clientX+'px';ring.style.top=e.clientY+'px';ring.style.display='block'}
-function strokePt(e){const M=curMasks(),rect=view.getBoundingClientRect(),w=M.light.width,h=M.light.height;
-  return{x:(e.clientX-rect.left)/rect.width*w,y:(e.clientY-rect.top)/rect.height*h,r:screenD()/rect.width*w/2,nx:(e.clientX-rect.left)/rect.width,ny:(e.clientY-rect.top)/rect.height,nr:screenD()*.7/rect.width/2}}
+function strokePt(e){const M=curMasks(),rect=view.getBoundingClientRect(),w=M.light.width,h=M.light.height,T=cropRect(photos[cur],1,1);
+  const vx=(e.clientX-rect.left)/rect.width,vy=(e.clientY-rect.top)/rect.height,nx=T.x+vx*T.w,ny=T.y+vy*T.h;
+  return{x:nx*w,y:ny*h,r:screenD()/rect.width*T.w*w/2,nx,ny,nr:screenD()*.7/rect.width*T.w/2}}
 function snapMasks(keys){const M=curMasks();return keys.map(k=>({k,d:M[k].getContext('2d',{willReadFrequently:true}).getImageData(0,0,M[k].width,M[k].height),u:M[k]._u}))}
 function startStroke(e){
   const M=curMasks();if(!M)return;
@@ -967,7 +962,7 @@ view.addEventListener('pointerdown',e=>{e.preventDefault();try{view.setPointerCa
   ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   const full=document.body.classList.contains('full');
   if(pickWB&&!full){pickAt(e);return}
-  if(st.tab==='local'&&!full){locDown(e);return}
+  if(st.tab==='crop'&&!full){cropDown(e);return}
   const brush=st.tab==='brush'&&!full;
   if(brush){
     if(ptrs.size===2){cancelStroke();const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,s:zm.s,x:zm.x,y:zm.y,mx:(a.x+b.x)/2,my:(a.y+b.y)/2};return}
@@ -978,10 +973,10 @@ view.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.se
   if(pinch&&ptrs.size>=2){const [a,b]=[...ptrs.values()],d=Math.hypot(a.x-b.x,a.y-b.y);zm.s=clamp(pinch.s*d/pinch.d,1,6);
     zm.x=pinch.x+((a.x+b.x)/2-pinch.mx);zm.y=pinch.y+((a.y+b.y)/2-pinch.my);
     const lim=(zm.s-1)*view.offsetWidth/2,limY=(zm.s-1)*view.offsetHeight/2;zm.x=clamp(zm.x,-lim,lim);zm.y=clamp(zm.y,-limY,limY);applyZoom();return}
-  if(locDrag){locMove(e);return}
+  if(cropG){cropMove();return}
   if(stroke){moveStroke(e);return}
   if(press&&!press.held&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>12){clearTimeout(press.t);press=null}});
-function ptrEnd(e){ptrs.delete(e.pointerId);if(locDrag){locEnd();return}
+function ptrEnd(e){ptrs.delete(e.pointerId);if(cropG){if(ptrs.size===0){cropG=null;commit();renderStrip()}else cropStart();return}
   if(pinch){if(ptrs.size<2)pinch=null;return}
   if(stroke){if(e.type==='pointercancel')cancelStroke();else endStroke();return}
   if(press){clearTimeout(press.t);const tap=!press.held&&e.type==='pointerup';press=null;if(tap)toggleFull();else beforeOff()}else beforeOff()}
@@ -995,16 +990,17 @@ async function clearMasks(){const p=photos[cur],M=p.masks;p.undo.push(snapMasks(
 
 /* ================= Verlauf ================= */
 let hist=[],hpos=-1;
-const snap=()=>JSON.stringify({p:st.preset,s:st.strength,a:st.adj,c:st.custom,x:st.mix,ph:photos.map(p=>[p.id,p.look,p.match,p.skin,p.rot||0,p.filters||[],p.sega||null])});
+const snap=()=>JSON.stringify({p:st.preset,s:st.strength,a:st.adj,c:st.custom,x:st.mix,ph:photos.map(p=>[p.id,p.look,p.match,p.skin,p.rot||0,p.crop||null])});
 function commit(){storeLook();const s=snap();if(hist[hpos]===s)return;hist=hist.slice(0,hpos+1);hist.push(s);if(hist.length>60)hist.shift();hpos=hist.length-1;histUI();saveMeta()}
 /* Nur das zurücknehmen, was sich in diesem Schritt geändert hat – Änderungen an anderen Fotos bleiben unberührt */
-async function restore(s,from){const o=JSON.parse(s),f=from?JSON.parse(from):null;const rot0=photos[cur]?photos[cur].rot||0:0;
+async function restore(s,from){let cropChanged=false;const o=JSON.parse(s),f=from?JSON.parse(from):null;const rot0=photos[cur]?photos[cur].rot||0:0;
   const fm=new Map((f&&f.ph||[]).map(e=>[e[0],e]));const J=JSON.stringify;
-  (o.ph||[]).forEach(e=>{const [id,look,match,skin,rot,filters,sega]=e,p=photos.find(p=>p.id===id);if(!p)return;const g=fm.get(id);
+  (o.ph||[]).forEach(e=>{const [id,look,match,skin,rot,crop]=e,p=photos.find(p=>p.id===id);if(!p)return;const g=fm.get(id);
     const ch=k=>!g||J(g[k])!==J(e[k]);
-    if(ch(1)&&id===photos[cur].id)p.look=look?cloneLook(look):null;if(ch(2))p.match=match;if(ch(3))p.skin=skin;if(ch(4))p.rot=rot;if(id===photos[cur].id){if(ch(5))p.filters=JSON.parse(JSON.stringify(filters||[]));if(ch(6))p.sega=sega?{...sega}:null}});
+    if(ch(1)&&id===photos[cur].id)p.look=look?cloneLook(look):null;if(ch(2))p.match=match;if(ch(3))p.skin=skin;if(ch(4))p.rot=rot;if(id===photos[cur].id&&ch(5)){p.crop=crop?{...crop}:null;cropChanged=true}});
   st.preset=o.p;st.strength=o.s;st.adj={...ZERO,...o.a};st.custom=o.c||null;st.mix=cloneMix(o.x);storeLook();
   if(photos[cur]&&(photos[cur].rot||0)!==rot0)await rebuildSrc();
+  if(cropChanged){layout();glMaskDirty=true}
   render();renderStrip();setTab(st.tab);saveMeta()}
 function histUI(){$('#undoBtn').disabled=hpos<=0;$('#redoBtn').disabled=hpos>=hist.length-1}
 $('#undoBtn').onclick=()=>{if(hpos>0){hpos--;restore(hist[hpos],hist[hpos+1]);histUI();vib()}};
@@ -1098,8 +1094,7 @@ function setTab(t){
   st.tab=t;saveMeta();panel.classList.toggle('noscroll',t==='filter');
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   if(t!=='brush'){if(showMask){showMask=false;render()}resetZoom()}applyZoom();
-  if(t!=='local')locSel=null;
-  ({filter:pFilter,adjust:pAdjust,brush:pBrush,local:pLocal})[t]();
+  ({filter:pFilter,adjust:pAdjust,brush:pBrush,crop:pCrop})[t]();
 }
 function setFill(el){const mn=+el.min,mx=+el.max,v=+el.value,p=(v-mn)/(mx-mn)*100,z=(0-mn)/(mx-mn)*100;el.style.setProperty('--f',p+'%');el.style.setProperty('--s',(mn<0?z:0)+'%')}
 const ICON_SAVE='<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>';
@@ -1218,7 +1213,7 @@ function pBrush(){
 /* ================= Weißabgleich-Pipette ================= */
 let pickWB=false;
 function pickAt(e){pickWB=false;const rect=view.getBoundingClientRect(),nx=(e.clientX-rect.left)/rect.width,ny=(e.clientY-rect.top)/rect.height;
-  if(nx<0||ny<0||nx>1||ny>1)return;const s=7,x=src.getContext('2d',{willReadFrequently:true}),px=Math.round(nx*src.width),py=Math.round(ny*src.height);
+  if(nx<0||ny<0||nx>1||ny>1)return;const T=cropRect(photos[cur],1,1),s=7,x=src.getContext('2d',{willReadFrequently:true}),px=Math.round((T.x+nx*T.w)*src.width),py=Math.round((T.y+ny*T.h)*src.height);
   const d=x.getImageData(Math.max(0,px-s),Math.max(0,py-s),s*2,s*2).data;let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++}
   r/=n;g/=n;b/=n;if(r+g+b<30){toast('Stelle zu dunkel – bitte eine hellere graue Fläche wählen');return}
   {const mx=Math.max(r,g,b),mn=Math.min(r,g,b);if((mx-mn)/mx>.38){toast('Diese Stelle ist zu farbig – wähle etwas Graues oder Weißes');return}}
@@ -1258,85 +1253,39 @@ function curveEditor(box){
   c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);
 }
 
-/* ================= Lokale Filter (Verlauf, Kreis) & Person ================= */
-let locSel=null,locDrag=null,showSeg=false;
-function newFilter(t){const p=photos[cur];p.filters=p.filters||[];
-  const f=t==='lin'?{t:'lin',x0:.5,y0:0,x1:.5,y1:.45,exp:-30,con:0,warm:0,sat:0}:{t:'rad',cx:.5,cy:.38,rx:.28,ry:.2,fe:.5,inv:false,exp:20,con:0,warm:0,sat:0};
-  p.filters.push(f);locSel=p.filters.length-1;render();commit();pLocal();vib()}
-function filterHandles(f){const r=view.getBoundingClientRect(),X=v=>r.left+v*r.width,Y=v=>r.top+v*r.height;
-  return f.t==='lin'?[{k:'a',x:X(f.x0),y:Y(f.y0)},{k:'b',x:X(f.x1),y:Y(f.y1)}]:[{k:'c',x:X(f.cx),y:Y(f.cy)},{k:'rx',x:X(f.cx+f.rx),y:Y(f.cy)},{k:'ry',x:X(f.cx),y:Y(f.cy+f.ry)}]}
-function locDown(e){const p=photos[cur];try{view.setPointerCapture(e.pointerId)}catch(_){}
-  const f=typeof locSel==='number'&&p.filters&&p.filters[locSel];if(!f)return;
-  const hs=filterHandles(f);let best=null,bd=34;hs.forEach(hd=>{const d=Math.hypot(hd.x-e.clientX,hd.y-e.clientY);if(d<bd){bd=d;best=hd.k}});
-  const r=view.getBoundingClientRect();locDrag={k:best||'move',f,sx:e.clientX,sy:e.clientY,o:JSON.parse(JSON.stringify(f)),W:r.width,H:r.height}}
-function locMove(e){const d=locDrag,f=d.f,o=d.o,dx=(e.clientX-d.sx)/d.W,dy=(e.clientY-d.sy)/d.H;
-  if(d.k==='a'){f.x0=o.x0+dx;f.y0=o.y0+dy}else if(d.k==='b'){f.x1=o.x1+dx;f.y1=o.y1+dy}
-  else if(d.k==='rx')f.rx=Math.max(.03,o.rx+dx);else if(d.k==='ry')f.ry=Math.max(.03,o.ry+dy);
-  else if(f.t==='lin'){f.x0=o.x0+dx;f.y0=o.y0+dy;f.x1=o.x1+dx;f.y1=o.y1+dy}else{f.cx=o.cx+dx;f.cy=o.cy+dy}
-  render(true)}
-function locEnd(){locDrag=null;render();commit()}
-function drawLocalOverlay(){
-  if(st.tab!=='local'||st.before)return;const p=photos[cur];if(!p)return;const W=view.width,H=view.height,x=vctx;x.save();
-  if(showSeg&&p.seg){ovC.width=W;ovC.height=H;const o=ovC.getContext('2d');o.drawImage(p.seg,0,0,W,H);o.globalCompositeOperation='source-in';o.fillStyle='#ff5a8a';o.fillRect(0,0,W,H);x.globalAlpha=.45;x.drawImage(ovC,0,0);x.globalAlpha=1}
-  (p.filters||[]).forEach((f,i)=>{const on=i===locSel;x.strokeStyle=on?'#fff':'rgba(255,255,255,.45)';x.lineWidth=Math.max(1.5,W/400)*(on?1.4:1);x.setLineDash(on?[]:[6,6]);
-    if(f.t==='lin'){const dx=(f.x1-f.x0)*W,dy=(f.y1-f.y0)*H,l=Math.hypot(dx,dy)||1,ux=-dy/l*W*2,uy=dx/l*W*2;
-      [[f.x0,f.y0],[f.x1,f.y1]].forEach(([a,b])=>{x.beginPath();x.moveTo(a*W-ux,b*H-uy);x.lineTo(a*W+ux,b*H+uy);x.stroke()})}
-    else{x.beginPath();x.ellipse(f.cx*W,f.cy*H,f.rx*W,f.ry*H,0,0,Math.PI*2);x.stroke();x.setLineDash([3,5]);x.beginPath();x.ellipse(f.cx*W,f.cy*H,Math.max(1,f.rx*W*(1-f.fe)),Math.max(1,f.ry*H*(1-f.fe)),0,0,Math.PI*2);x.stroke()}
-    if(on){x.setLineDash([]);const hs=f.t==='lin'?[[f.x0,f.y0],[f.x1,f.y1]]:[[f.cx,f.cy],[f.cx+f.rx,f.cy],[f.cx,f.cy+f.ry]];
-      hs.forEach(([a,b])=>{x.fillStyle='#fff';x.beginPath();x.arc(a*W,b*H,Math.max(7,W/70),0,7);x.fill();x.strokeStyle='#0009';x.lineWidth=2;x.stroke()})}});
+/* ================= Zuschnitt (Beitrag, Story, Profilbild) ================= */
+let cropG=null;
+function setCropFmt(id){const p=photos[cur];if(!p)return;p.crop=id==='orig'?null:{fmt:id,z:1,cx:.5,cy:.45};glDirty=true;glMaskDirty=true;layout();commit();renderStrip();pCrop();vib()}
+function cropStart(){const p=photos[cur],c=cropOf(p);if(!c){cropG=null;return}const pts=[...ptrs.values()],r=view.getBoundingClientRect();
+  cropG={n:pts.length,x:pts.reduce((s,q)=>s+q.x,0)/pts.length,y:pts.reduce((s,q)=>s+q.y,0)/pts.length,d:pts.length>1?Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y)||1:1,
+    z:c.z||1,cx:c.cx??.5,cy:c.cy??.5,W:r.width,H:r.height,R:cropRect(p,src.width,src.height)}}
+function cropDown(e){if(!cropOf(photos[cur]))return;cropStart()}
+function cropMove(){const p=photos[cur],c=cropOf(p);if(!c||!cropG)return;const pts=[...ptrs.values()];if(pts.length!==cropG.n){cropStart();return}
+  const mx=pts.reduce((s,q)=>s+q.x,0)/pts.length,my=pts.reduce((s,q)=>s+q.y,0)/pts.length,G=cropG;
+  if(pts.length>1){const d=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);c.z=clamp(G.z*d/G.d,1,6)}
+  c.cx=G.cx-(mx-G.x)/G.W*G.R.w;c.cy=G.cy-(my-G.y)/G.H*G.R.h;
+  const R=cropRect(p,src.width,src.height);c.cx=R.x+R.w/2;c.cy=R.y+R.h/2;glDirty=true;glMaskDirty=true;render(true)}
+function drawCropOverlay(){
+  if(st.tab!=='crop'||st.before)return;const c=cropOf(photos[cur]);const W=view.width,H=view.height,x=vctx;x.save();
+  x.strokeStyle='rgba(255,255,255,.35)';x.lineWidth=Math.max(1,W/600);x.beginPath();for(let i=1;i<3;i++){x.moveTo(W*i/3,0);x.lineTo(W*i/3,H);x.moveTo(0,H*i/3);x.lineTo(W,H*i/3)}x.stroke();
+  const f=c&&CROPF.find(f=>f.id===c.fmt);
+  if(f&&f.round){x.fillStyle='rgba(0,0,0,.55)';x.beginPath();x.rect(0,0,W,H);x.arc(W/2,H/2,Math.min(W,H)/2,0,Math.PI*2,true);x.fill('evenodd');
+    x.strokeStyle='rgba(255,255,255,.8)';x.lineWidth=Math.max(1.5,W/400);x.beginPath();x.arc(W/2,H/2,Math.min(W,H)/2-1,0,Math.PI*2);x.stroke()}
+  if(f&&f.id==='story'){x.fillStyle='rgba(0,0,0,.28)';x.fillRect(0,0,W,H*.13);x.fillRect(0,H*.82,W,H*.18);x.fillStyle='rgba(255,255,255,.7)';x.font=`${Math.round(W/34)}px -apple-system,sans-serif`;x.textAlign='center';
+    x.fillText('Bereich für Profil & Antworten frei halten',W/2,H*.9)}
   x.restore()}
-function pLocal(){
-  const p=photos[cur];p.filters=p.filters||[];panel.innerHTML='<div class="row" id="lr"></div><div id="lsl"></div>';const lr=$('#lr'),box=$('#lsl');
-  const chip=(t,on,fn)=>{const b=document.createElement('button');b.className='chip'+(on?' on':'');b.innerHTML=t;b.onclick=()=>{fn();vib()};lr.appendChild(b);return b};
-  chip('＋ Verlauf',false,()=>newFilter('lin'));chip('＋ Kreis',false,()=>newFilter('rad'));
-  chip('<span class="tdot" style="background:#ff5a8a"></span>Person',locSel==='person',()=>{locSel='person';pLocal();render()});
-  p.filters.forEach((f,i)=>chip((f.t==='lin'?'Verlauf ':'Kreis ')+(i+1),locSel===i,()=>{locSel=i;pLocal();render()}));
-  const slider=(label,min,max,val,fmt,onIn)=>{const d=document.createElement('div');d.className='sl'+(+val?' set':'');
-    d.innerHTML=`<label>${label}</label><input type="range" min="${min}" max="${max}" step="1" value="${val}"><span class="val">${fmt(val)}</span>`;
-    const r=d.querySelector('input'),v=d.querySelector('.val');setFill(r);r.oninput=()=>{v.textContent=fmt(r.value);setFill(r);d.classList.toggle('set',!!+r.value);onIn(+r.value);render(true)};r.onchange=()=>{render();commit()};
-    d.querySelector('label').onclick=()=>{r.value=min>0?min:0;r.oninput();r.onchange()};box.appendChild(d)};
-  const sg=v=>(v>0?'+':'')+v;
-  if(typeof locSel==='number'&&p.filters[locSel]){const f=p.filters[locSel];
-    const r2=document.createElement('div');r2.className='row';
-    r2.innerHTML=(f.t==='rad'?`<button class="chip${f.inv?' on':''}" id="finv">${f.inv?'Wirkt außen':'Wirkt innen'}</button>`:'')+'<button class="chip" id="fdel">Löschen</button><span class="mini" style="padding:7px 4px">Punkte im Bild ziehen</span>';box.appendChild(r2);
-    slider('Belichtung',-100,100,f.exp,sg,v=>f.exp=v);slider('Kontrast',-100,100,f.con,sg,v=>f.con=v);slider('Wärme',-100,100,f.warm,sg,v=>f.warm=v);slider('Sättigung',-100,100,f.sat,sg,v=>f.sat=v);
-    if(f.t==='rad')slider('Weiche Kante',5,100,Math.round(f.fe*100),v=>v,v=>f.fe=v/100);
-    if($('#finv'))$('#finv').onclick=()=>{f.inv=!f.inv;render();commit();pLocal()};
-    $('#fdel').onclick=()=>{p.filters.splice(locSel,1);locSel=null;render();commit();pLocal()};
-  }else if(locSel==='person'){
-    if(!p.seg){const d=document.createElement('div');d.style.cssText='padding:8px 16px;display:flex;flex-direction:column;gap:8px';
-      d.innerHTML='<button class="btn primary" id="segGo">Person erkennen</button><span class="mini">Erkennt die Person per KI direkt auf dem Gerät. Beim ersten Mal wird das Modell aus dem Internet geladen, danach geht es offline.</span>';box.appendChild(d);$('#segGo').onclick=detectPerson}
-    else{const a=p.sega||(p.sega={bgBlur:40,bgExp:0,bgSat:0,pExp:0});
-      const r2=document.createElement('div');r2.className='row';r2.innerHTML=`<button class="chip${showSeg?' on':''}" id="sgShow">Maske zeigen</button><button class="chip" id="sgRe">Neu erkennen</button><button class="chip" id="sgDel">Entfernen</button>`;box.appendChild(r2);
-      const cap=t=>{const m=document.createElement('div');m.className='mini';m.style.cssText='padding:6px 16px 0;letter-spacing:.06em;text-transform:uppercase;font-size:10px';m.textContent=t;box.appendChild(m)};
-      cap('Hintergrund');slider('Unschärfe',0,100,a.bgBlur,v=>v,v=>a.bgBlur=v);slider('Helligkeit',-100,100,a.bgExp,sg,v=>a.bgExp=v);slider('Farbigkeit',-100,100,a.bgSat,sg,v=>a.bgSat=v);
-      cap('Person');slider('Helligkeit',-100,100,a.pExp,sg,v=>a.pExp=v);
-      $('#sgShow').onclick=()=>{showSeg=!showSeg;render();pLocal()};$('#sgRe').onclick=detectPerson;
-      $('#sgDel').onclick=()=>{p.seg=null;p.sb=null;p.sega=null;savePhoto(p);render();commit();pLocal()}}
-  }else{const m=document.createElement('div');m.className='mini';m.style.cssText='padding:10px 16px;line-height:1.5';
-    m.textContent='Verlauf: z. B. Himmel abdunkeln. Kreis: Gesicht oder Person betonen. Person: Hintergrund weichzeichnen, abdunkeln oder entsättigen.';box.appendChild(m)}
+function pCrop(){
+  const p=photos[cur],c=cropOf(p),cur0=c?c.fmt:'orig';panel.innerHTML='<div class="row" id="cfr" style="padding-top:8px"></div><div class="row" id="cfa"></div><div class="mini" id="cfh" style="padding:4px 16px 8px"></div>';
+  const row=$('#cfr');
+  CROPF.forEach(f=>{const r=f.r||(src.width/src.height);let hh=34,ww=hh*r;if(ww>40){ww=40;hh=ww/r}
+    const b=document.createElement('button');b.className='fmt'+(cur0===f.id?' on':'');
+    b.innerHTML=`<div class="box${f.round?' rnd':''}" style="width:${ww}px;height:${hh}px"></div><span>${f.n}</span><small>${f.sub}</small>`;b.onclick=()=>setCropFmt(f.id);row.appendChild(b)});
+  const a=$('#cfa');
+  if(c){const z=document.createElement('button');z.className='chip';z.textContent='Zentrieren';z.onclick=()=>{c.z=1;c.cx=.5;c.cy=.45;glDirty=true;glMaskDirty=true;render();commit()};a.appendChild(z)}
+  if(photos.length>1){const all=document.createElement('button');all.className='chip';all.textContent=`Format für alle ${photos.length} Fotos`;
+    all.onclick=()=>{const fm=cur0;photos.forEach(q=>{if(q!==p)q.crop=fm==='orig'?null:{fmt:fm,z:1,cx:.5,cy:.45}});commit();renderStrip();toast(`Format „${CROPF.find(f=>f.id===fm).n}“ für alle Fotos`);vib()};a.appendChild(all)}
+  $('#cfh').textContent=c?'Bild ziehen zum Verschieben, mit zwei Fingern zoomen.':'Wähle ein Format, um das Bild zuzuschneiden.';
 }
-/* Person freistellen (MediaPipe Selfie Segmentation, läuft auf dem Gerät) */
-const MP='https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/';let segLib=null;
-function loadScript(u){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=u;s.crossOrigin='anonymous';s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
-function maskFromImage(img,w,h){
-  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0,w,h);
-  const id=x.getImageData(0,0,w,h),d=id.data;let amin=255,amax=0;for(let i=3;i<d.length;i+=4){if(d[i]<amin)amin=d[i];if(d[i]>amax)amax=d[i]}const useA=amax-amin>40;
-  for(let i=0;i<d.length;i+=4){const v=useA?d[i+3]:Math.max(d[i],d[i+1],d[i+2]);d[i]=clamp((v-50)*1.5,0,255);d[i+1]=d[i+2]=0;d[i+3]=255}
-  boxBlur(d,w,h);boxBlur(d,w,h);for(let i=0;i<d.length;i+=4){d[i+3]=d[i];d[i]=d[i+1]=d[i+2]=255}
-  x.putImageData(id,0,0);c._u=true;return c}
-async function detectPerson(){
-  const p=photos[cur];busy(true);toast('Person wird erkannt …');
-  try{
-    if(!window.SelfieSegmentation)await loadScript(MP+'selfie_segmentation.js');
-    if(!segLib){segLib=new window.SelfieSegmentation({locateFile:f=>MP+f});segLib.setOptions({modelSelection:0,selfieMode:false})}
-    const k=Math.min(1,512/Math.max(src.width,src.height)),inp=document.createElement('canvas');inp.width=Math.round(src.width*k);inp.height=Math.round(src.height*k);inp.getContext('2d').drawImage(src,0,0,inp.width,inp.height);
-    const res=await Promise.race([new Promise((ok,err)=>{segLib.onResults(ok);segLib.send({image:inp}).catch(err)}),sleep(30000).then(()=>{throw new Error('timeout')})]);
-    const M=p.masks.light;p.seg=maskFromImage(res.segmentationMask,M.width,M.height);
-    p.sega=p.sega||{bgBlur:40,bgExp:0,bgSat:0,pExp:0};savePhoto(p);showSeg=true;render();commit();pLocal();toast('Person erkannt');
-    setTimeout(()=>{showSeg=false;render();if(st.tab==='local')pLocal()},1500);
-  }catch(e){toast('Erkennung nicht möglich – beim ersten Mal ist Internet nötig')}
-  busy(false)}
 
 /* ================= Stapel angleichen ================= */
 function stats(c){const w=48,h=Math.max(6,Math.round(48*c.height/c.width)),t=document.createElement('canvas');t.width=w;t.height=h;const x=t.getContext('2d',{willReadFrequently:true});
@@ -1411,7 +1360,7 @@ const toBlob=c=>new Promise(r=>c.toBlob(r,'image/jpeg',.92));
 const fname=(i,suf='')=>`atelier-${new Date().toISOString().slice(0,10)}-${String(i+1).padStart(2,'0')}${suf}.jpg`;
 async function renderOut(i){const p=photos[i];
   let c0;try{c0=expSize==='orig'?await decodeEdited(p,4600):(i===cur?src:await decodeEdited(p,2400))}catch(_){c0=await decodeEdited(p,2400)}
-  return withPhoto(i,c0,()=>{let W,H;const r=c0.width/c0.height;if(expSize==='orig'){W=c0.width;H=c0.height;const k=Math.min(1,Math.sqrt(16e6/(W*H)));W=Math.round(W*k);H=Math.round(H*k)}else{W=1080;H=Math.round(W/r)}
+  return withPhoto(i,c0,()=>{let W,H;const T=cropRect(p,c0.width,c0.height),r=(T.w*c0.width)/(T.h*c0.height);if(expSize==='orig'){W=Math.round(T.w*c0.width);H=Math.round(W/r);const k=Math.min(1,Math.sqrt(16e6/(W*H)));W=Math.round(W*k);H=Math.round(H*k)}else{W=1080;H=Math.round(W/r)}
     const c=document.createElement('canvas');c.width=W;c.height=H;compose(c.getContext('2d',{willReadFrequently:true}),W,H,false);if(c0!==src)c0.width=c0.height=0;return c})}
 async function renderBlob(i){
   try{const c=await renderOut(i),b=await toBlob(c);if(!b)throw 0;const r={b,w:c.width,h:c.height,small:smallOf(c)};c.width=c.height=0;return r}
@@ -1422,7 +1371,7 @@ async function doExport(){
   busy(true);await sleep(30);storeLook();
   let R;try{R=await renderBlob(cur)}catch(_){busy(false);toast('Export fehlgeschlagen – bitte erneut versuchen');return}
   if(lastURL)URL.revokeObjectURL(lastURL);lastURL=URL.createObjectURL(R.b);$('#outImg').src=lastURL;
-  let info=`${R.w} × ${R.h} px · ${CS==='display-p3'?'Display P3':'sRGB'} · ${lookName()}`;const r=R.w/R.h;if(r<.75||r>1.91)info+=' · sehr hohe/breite Bilder werden im Feed beschnitten';
+  let info=`${R.w} × ${R.h} px · ${CS==='display-p3'?'Display P3':'sRGB'} · ${lookName()}`;const r=R.w/R.h,cf=cropOf(photos[cur]);if(cf)info+=' · '+CROPF.find(f=>f.id===cf.fmt).n;else if(r<.75||r>1.91)info+=' · sehr hohe/breite Bilder werden im Feed beschnitten';
   if(R.fallback)info+=' · zu groß für den Speicher, in Feed-Größe exportiert';
   $('#outInfo').textContent=info;addFeed(R.small,false,photos[cur].id);
   lastBlob=R.b;let ok=false;try{ok=!!(navigator.canShare&&navigator.canShare({files:[new File([lastBlob],fname(cur),{type:'image/jpeg'})]}))}catch(_){}
@@ -1460,7 +1409,7 @@ $('#resClose').onclick=()=>$('#results').classList.add('hidden');
 
 /* Vorher/Nachher-Bild */
 async function exportBeforeAfter(){busy(true);await sleep(20);storeLook();
-  const r=src.width/src.height,W=1080,H=Math.round(W/r),a=document.createElement('canvas'),b=document.createElement('canvas');a.width=b.width=W;a.height=b.height=H;
+  const r=aspect(),W=1080,H=Math.round(W/r),a=document.createElement('canvas'),b=document.createElement('canvas');a.width=b.width=W;a.height=b.height=H;
   compose(a.getContext('2d',{willReadFrequently:true}),W,H,true);compose(b.getContext('2d',{willReadFrequently:true}),W,H,false);
   const o=a.getContext('2d');o.drawImage(b,W/2,0,W/2,H,W/2,0,W/2,H);o.fillStyle='#fff';o.fillRect(W/2-1.5,0,3,H);
   o.font='600 26px -apple-system,Inter,sans-serif';o.textBaseline='bottom';const lab=(t,x,al)=>{o.textAlign=al;o.shadowColor='#0008';o.shadowBlur=10;o.fillText(t,x,H-28)};

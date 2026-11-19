@@ -21,12 +21,11 @@
 - Hautton im Stapel angleichen
 - Einführung beim ersten Start (3 Schritte, im ⋯-Menü erneut aufrufbar)
 
-- Verlaufs- und Kreisfilter (Belichtung, Kontrast, Wärme, Sättigung)
 - Schärfen und Rauschminderung
 - Freie Tonkurve (RGB und einzelne Kanäle)
 - Weißabgleich-Pipette
 - Augen und Zähne aufhellen (Pinsel)
-- Person freistellen per KI (MediaPipe, auf dem Gerät): Hintergrund weichzeichnen/abdunkeln/entsättigen
+- Zuschnitt: Beitrag (4:5), Story (9:16), Profilbild (1:1, rund) – verschieben/zoomen, für alle Fotos übernehmen
 
 ## Offen
 - Impressum & Datenschutz für die öffentliche Seite
