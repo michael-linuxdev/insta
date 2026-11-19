@@ -6,7 +6,7 @@ Läuft komplett im Browser, Fotos verlassen das Gerät nicht.
 **Live:** https://insta.micana.de
 
 ## Funktionen
-- 42 Looks (Signature, Neutral, Porträt, Fashion, Film, S/W) plus Vorschläge passend zum Foto
+- 82 Looks: Signature, Neutral, 5 Pakete (Studio Skin, Summer & Sea, Quiet Luxury, Night & City, Film & Soft), Porträt, Fashion, Film, S/W – plus Vorschläge passend zum Foto
 - Hautschutz, Haut glätten, Farbsteuerung pro Farbbereich
 - Eigene Looks speichern, als Link teilen, Backup/Import; Favoriten
 - Stapelbearbeitung (bis 30 Fotos), eigener Look pro Foto, Stapel angleichen

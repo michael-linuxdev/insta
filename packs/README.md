@@ -1,6 +1,6 @@
 # Atelier Look-Pakete
 
-5 Pakete à 8 Looks. Jede Datei wird in Atelier über **⋯ → Looks laden** (oder „Backup oder Look laden“ auf dem Startbildschirm) importiert und erscheint als eigene Kategorie mit ◆.
+5 Pakete à 8 Looks – fest in der App eingebaut (eigene Kategorien). Die Dateien hier dienen zum Weitergeben/Verkaufen; jede Datei wird in Atelier über **⋯ → Looks laden** (oder „Backup oder Look laden“ auf dem Startbildschirm) importiert und erscheint als eigene Kategorie mit ◆.
 
 | Datei | Paket | Für |
 |---|---|---|

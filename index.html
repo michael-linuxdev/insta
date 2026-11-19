@@ -296,7 +296,7 @@ const ADJ=[
 const KEYS=ADJ.map(a=>a.k);
 const ZERO=Object.fromEntries(KEYS.map(k=>[k,0]));
 /* Presets: a = Regler, sh/hi = Split-Toning [Farbton, Stärke], c = Tonkurven (0–255), bw = S/W-Kanalmischung */
-const CATS=['Alle','Signature','Neutral','Porträt','Fashion','Film','S/W'];
+const CATS=['Alle','Signature','Neutral','Studio Skin','Summer & Sea','Quiet Luxury','Night & City','Film & Soft','Porträt','Fashion','Film','S/W'];
 const PRESETS=[
  {n:'Original',cat:'',a:{}},
  /* ---- Neutral: gedämpfte Beige-/Greige-Palette, matte Tiefen, kühle Schatten, cremige Lichter ---- */
@@ -353,6 +353,51 @@ const PRESETS=[
   hsl:{blue:[-20,-6],orange:[6,4]},sh:[215,12],c:{rgb:[[0,8],[64,58],[128,126],[192,196],[255,248]]}},
  {n:'Tageslicht',cat:'Signature',a:{exposure:4,contrast:10,vibrance:14,highlights:-18,shadows:10,clarity:6,smooth:18,warm:3},
   c:{rgb:[[0,2],[64,62],[128,130],[192,198],[255,254]]}},
+ /* ---- Paket: Studio Skin ---- */
+ {"n": "Porzellan", "cat": "Studio Skin", "base": "Studio Glow", "bs": 90, "a": {"exposure": 4, "highlights": -10, "smooth": 15, "skinlum": 10}, "x": {"orange": [-8, 8, 0], "red": [-10, 0, 0]}},
+ {"n": "Honig", "cat": "Studio Skin", "base": "Bronze", "bs": 75, "a": {"warm": 2, "glow": 6, "skinlum": 6}, "x": {"orange": [-8, 4, -3], "yellow": [-15, 0, 0]}},
+ {"n": "Seide", "cat": "Studio Skin", "base": "Soft Skin", "bs": 80, "a": {"exposure": 3, "fade": 4}, "x": {"orange": [-4, 10, 0], "aqua": [-30, 0, 0], "blue": [-30, 0, 0]}},
+ {"n": "Grau Editorial", "cat": "Studio Skin", "base": "Studio Grau", "bs": 100, "a": {"contrast": 8, "clarity": 6}, "x": {"orange": [-6, 6, 0]}},
+ {"n": "Rosé", "cat": "Studio Skin", "base": "Pfirsich", "bs": 85, "a": {"tint": 6}, "x": {"red": [-10, 4, -4], "orange": [-4, 8, -2], "magenta": [-20, 0, 0]}},
+ {"n": "Glow Up", "cat": "Studio Skin", "base": "Beauty Hell", "bs": 80, "a": {"glow": 12, "smooth": 10}, "x": {"orange": [0, 8, 0]}},
+ {"n": "Kontur", "cat": "Studio Skin", "base": "Editorial", "bs": 65, "a": {"contrast": 4, "clarity": 8, "smooth": 20, "vignette": 6, "warm": -2}, "x": {"orange": [-10, 4, 0], "red": [-8, 0, 0]}},
+ {"n": "Monochrom", "cat": "Studio Skin", "base": "S/W Porträt", "bs": 100, "a": {"contrast": 6, "fade": 6, "grain": 4}},
+ /* ---- Paket: Summer & Sea ---- */
+ {"n": "Lagune", "cat": "Summer & Sea", "base": "Pool Blau", "bs": 100, "a": {"vibrance": 6}, "x": {"aqua": [10, 4, -4]}},
+ {"n": "Ägäis", "cat": "Summer & Sea", "base": "Mittelmeer", "bs": 100, "a": {"warm": 2}, "x": {"blue": [10, -6, 0], "orange": [-10, 4, 0]}},
+ {"n": "Sonnenöl", "cat": "Summer & Sea", "base": "Golden Hour", "bs": 80, "a": {"warm": 4, "glow": 6, "skinlum": 4}, "x": {"orange": [-4, 4, -2], "aqua": [-10, 0, 6]}},
+ {"n": "Strandhaus", "cat": "Summer & Sea", "base": "Sand", "bs": 100, "a": {"exposure": 4}, "x": {"aqua": [-20, 6, 0], "blue": [-30, 4, 0]}},
+ {"n": "Riviera", "cat": "Summer & Sea", "base": "Tageslicht", "bs": 100, "a": {"contrast": 6, "highlights": -10}, "x": {"blue": [15, -10, 0], "aqua": [15, -4, 0], "yellow": [-10, 0, 0], "orange": [-12, 4, 0]}},
+ {"n": "Salzwasser", "cat": "Summer & Sea", "base": "Teal Film", "bs": 90, "a": {"fade": 4}, "x": {"orange": [4, 4, 0]}},
+ {"n": "Mittagshitze", "cat": "Summer & Sea", "base": "Herbstgold", "bs": 60, "a": {"highlights": -14, "vibrance": 4}, "x": {"blue": [10, -6, 0], "aqua": [10, 0, 0], "orange": [-12, 4, 0]}},
+ {"n": "Bootstag", "cat": "Summer & Sea", "base": "Cinema", "bs": 80, "a": {"exposure": 4, "highlights": -12}, "x": {"aqua": [8, 0, 0], "orange": [4, 4, 0]}},
+ /* ---- Paket: Quiet Luxury ---- */
+ {"n": "Greige Pure", "cat": "Quiet Luxury", "base": "Greige", "bs": 100, "a": {"fade": 2}},
+ {"n": "Cashmere", "cat": "Quiet Luxury", "base": "Latte", "bs": 90, "a": {"exposure": 3, "smooth": 8}, "x": {"orange": [-4, 6, 0]}},
+ {"n": "Marmor", "cat": "Quiet Luxury", "base": "Clean", "bs": 100, "a": {"contrast": 4, "sat": -4}},
+ {"n": "Espresso", "cat": "Quiet Luxury", "base": "Mocca", "bs": 90, "a": {"contrast": 6}, "x": {"orange": [-6, -2, 0]}},
+ {"n": "Leinen", "cat": "Quiet Luxury", "base": "Sand", "bs": 80, "a": {"fade": 6, "sat": -8}, "x": {"green": [-30, 0, 0]}},
+ {"n": "Champagne", "cat": "Quiet Luxury", "base": "Champagner", "bs": 100, "a": {"glow": 6}},
+ {"n": "Concrete", "cat": "Quiet Luxury", "base": "Beton", "bs": 100, "a": {"clarity": 4}, "x": {"orange": [-4, 6, 0]}},
+ {"n": "Sepia Soft", "cat": "Quiet Luxury", "base": "S/W Warm", "bs": 90, "a": {"fade": 6}},
+ /* ---- Paket: Night & City ---- */
+ {"n": "Goldlicht", "cat": "Night & City", "base": "Low Key Gold", "bs": 70, "a": {"skinlum": 6, "sat": -8}, "x": {"yellow": [10, 6, 0], "orange": [-18, 4, 0]}},
+ {"n": "Blitzlicht", "cat": "Night & City", "base": "Blitz Abend", "bs": 75, "a": {"warm": -4, "sat": -6}, "x": {"orange": [-16, 6, 0], "red": [-10, 0, 0]}},
+ {"n": "Neon Noir", "cat": "Night & City", "base": "Cinema", "bs": 100, "a": {"exposure": -6, "contrast": 10, "vignette": 10}, "x": {"blue": [15, -10, 0], "aqua": [10, -6, 0]}},
+ {"n": "Asphalt", "cat": "Night & City", "base": "Moody", "bs": 90, "a": {"clarity": 6}, "x": {"orange": [6, 6, 0]}},
+ {"n": "Pariser Nacht", "cat": "Night & City", "base": "Paris Grau", "bs": 100, "a": {"exposure": -4, "warm": 6}, "x": {"yellow": [20, 4, -4]}},
+ {"n": "Hotelbar", "cat": "Night & City", "base": "Mocca", "bs": 80, "a": {"exposure": -6, "contrast": 12, "vignette": 12}, "x": {"orange": [6, 4, 0], "yellow": [10, 0, 0]}},
+ {"n": "Nacht S/W", "cat": "Night & City", "base": "S/W Kontrast", "bs": 90, "a": {"grain": 4}},
+ {"n": "Stadtlichter", "cat": "Night & City", "base": "Editorial", "bs": 80, "a": {"glow": 10}, "x": {"yellow": [15, 6, 0], "orange": [-12, 4, 0]}},
+ /* ---- Paket: Film & Soft ---- */
+ {"n": "Warm 400", "cat": "Film & Soft", "base": "Film Warm", "bs": 100, "a": {}, "x": {"orange": [4, 4, 0]}},
+ {"n": "Kühl 160", "cat": "Film & Soft", "base": "Film Kühl", "bs": 100, "a": {}},
+ {"n": "Sommer 98", "cat": "Film & Soft", "base": "Vintage", "bs": 80, "a": {"exposure": 4}, "x": {"green": [-20, 0, -6]}},
+ {"n": "Sofortbild", "cat": "Film & Soft", "base": "Pfirsich", "bs": 100, "a": {"fade": 10, "vignette": 10, "warm": 4}, "x": {"aqua": [-20, 6, 0]}},
+ {"n": "Diafilm", "cat": "Film & Soft", "base": "Magazin", "bs": 100, "a": {"contrast": 6, "grain": 6}, "x": {"blue": [10, -6, 0], "red": [-8, 0, 0], "orange": [-14, 4, 0]}},
+ {"n": "Matt & Weich", "cat": "Film & Soft", "base": "Film Warm", "bs": 70, "a": {"fade": 12, "smooth": 15, "contrast": -6}},
+ {"n": "Olivfilm", "cat": "Film & Soft", "base": "Olive", "bs": 100, "a": {"grain": 8}, "x": {"green": [0, 0, -6]}},
+ {"n": "Silber", "cat": "Film & Soft", "base": "S/W Matt", "bs": 100, "a": {"contrast": 6}},
  {n:'Natürlich',cat:'Porträt',a:{exposure:3,contrast:8,vibrance:12,smooth:20,warm:4,highlights:-8,shadows:6},
   c:{rgb:[[0,4],[64,60],[128,130],[192,196],[255,252]]}},
  {n:'Soft Skin',cat:'Porträt',a:{smooth:48,glow:16,highlights:-20,shadows:15,contrast:-4,warm:7,vibrance:12,sat:-2,fade:6},
@@ -403,7 +448,14 @@ function curveLUT(pts){
 }
 const curveCache=new Map();
 function cLUT(pts){if(!pts)return null;if(!curveCache.has(pts))curveCache.set(pts,curveLUT(pts));return curveCache.get(pts)}
+function addMix(a,b,k=1){const o=cloneMixE(a);for(const band in (b||{})){const v=b[band];if(!v)continue;const t=o[band]||(o[band]=[0,0,0]);for(let i=0;i<3;i++)t[i]+=(v[i]||0)*k}return o}
+function cloneMixE(m){const o={};for(const b in (m||{}))if(m[b])o[b]=[...m[b]];return o}
 function params(s=st){
+  const pk=PRESETS[s.preset];
+  if(pk&&pk.base){let bi=PRESETS.findIndex(q=>q.n===pk.base);if(bi<0)bi=0;const k=s.strength/100;
+    const o=params({preset:bi,strength:pk.bs*k,adj:ZERO,mix:{}});
+    KEYS.forEach(key=>o[key]+=(pk.a[key]||0)*k+(s.adj[key]||0));
+    o.mix=addMix(addMix({},pk.x,k),s.mix);if(!hasMix(o.mix))o.mix=null;return o}
   const p=PRESETS[s.preset]||PRESETS[0],k=s.strength/100,a=p.a||{},o={k,c:p.c||{},bw:p.bw||null};
   KEYS.forEach(key=>o[key]=(a[key]||0)*k+(s.adj[key]||0));
   o.hsl=p.hsl||null;o.mix=s.mix||null;o.skinShift=null;
