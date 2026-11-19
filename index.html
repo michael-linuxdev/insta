@@ -17,7 +17,8 @@
 :root{--bg:#0f0f10;--panel:#161617;--card:#212123;--line:#2c2c2f;--text:#f3f1ec;--mute:#8f8d88;--acc:#c8ad84;--danger:#e0705f}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
-body{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+html{height:100%;background:var(--bg)}
+body{position:fixed;top:0;left:0;right:0;height:100%;display:flex;flex-direction:column;overflow:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 img{-webkit-user-drag:none}
 .th img,#strip img,#view{pointer-events:none}
 #view{pointer-events:auto}
@@ -555,7 +556,16 @@ function layout(){
   const W=Math.min(full?1080:720,Math.round(cw*Math.min(devicePixelRatio||1,2)));
   view.width=W;view.height=Math.round(W/r);render();
 }
-addEventListener('resize',layout);
+/* iOS-Homescreen-App: Höhe exakt auf den Bildschirm setzen (sonst fehlt unten die Statusleisten-Höhe) */
+function fitHeight(){
+  const sa=navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+  let hgt=window.innerHeight;
+  if(sa&&screen&&screen.height){const portrait=innerHeight>=innerWidth;hgt=Math.max(hgt,portrait?Math.max(screen.height,screen.width):Math.min(screen.height,screen.width))}
+  document.body.style.height=hgt+'px';
+}
+fitHeight();
+addEventListener('resize',()=>{fitHeight();layout()});
+addEventListener('orientationchange',()=>setTimeout(()=>{fitHeight();layout()},300));
 function toggleFull(){document.body.classList.toggle('full');layout();vib()}
 function lookName(){if(st.custom){const c=customs.find(c=>c.id===st.custom);if(c)return c.n}return st.preset?PRESETS[st.preset].n:'Eigene Anpassung'}
 function updateTag(){
