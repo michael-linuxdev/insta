@@ -13,6 +13,19 @@
 - Vorher/Nachher-Bild
 - WebGL-Vorschau (Look als 3D-LUT auf der GPU), JS-Engine für den finalen Export
 - Sitzung bleibt nach Schließen/Absturz erhalten (IndexedDB)
+- Display-P3-Farbraum auf iPhones (Bearbeitung und Export)
+- Speicherschonender Export mit automatischem Fallback auf Feed-Größe
+- Rückgängig auch für Stapel-Aktionen (Angleichen, eigener Look, Begradigen)
+- Begradigen (±15°, automatischer Beschnitt)
+- Farbmischer: Farbton/Sättigung/Helligkeit für 8 Farbbereiche
+- Hautton im Stapel angleichen
+- Einführung beim ersten Start (3 Schritte, im ⋯-Menü erneut aufrufbar)
+
+## Offen
+- Impressum & Datenschutz für die öffentliche Seite
+- Looks zwischen Geräten synchronisieren
+- App-Store-Version (z. B. Capacitor) für direkten Fotos-Zugriff
+- Look-Pakete / Pro-Version
 
 ## Ideen
 - Vorher/Nachher als Video (Wischeffekt)
