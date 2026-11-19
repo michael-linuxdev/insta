@@ -672,10 +672,10 @@ async function addFiles(list){
 $('#file').addEventListener('change',e=>{addFiles(e.target.files);e.target.value=''});
 async function select(i){
   if(i<0||i>=photos.length)return;busy(true);
-  if(cur>=0&&photos[cur])storeLook();
+  if(cur>=0&&photos[cur]){storeLook();photos[cur].hist=hist;photos[cur].hpos=hpos}
   try{const p=photos[i];srcBase=await decode(p.file,2400);const c=buildSrc(p);cur=i;src=c;if(!p.masks)p.masks=makeMasks(c);await loadMaskBlobs(p)}
   catch(_){busy(false);toast('Foto konnte nicht geöffnet werden');return}
-  loadLook(i);hist=[];hpos=-1;commit();
+  loadLook(i);const ph=photos[i];if(ph.hist&&ph.hist.length){hist=ph.hist;hpos=Math.min(ph.hpos,hist.length-1);hist[hpos]=snap()}else{hist=[];hpos=-1;commit()}histUI();
   $('#modal').classList.add('hidden');$('#empty').classList.add('hidden');$('#logo').classList.add('hidden');
   ['#view','#sheet','#newBtn','#delBtn','#feedBtn','#moreBtn','#expBtn','#hist','#before'].forEach(s=>$(s).classList.remove('hidden'));
   resetZoom();renderStrip();layout();makeThumbs();setTab(st.tab);showHint();busy(false);saveMeta();
@@ -959,14 +959,18 @@ async function clearMasks(){const p=photos[cur],M=p.masks;p.undo.push(snapMasks(
 let hist=[],hpos=-1;
 const snap=()=>JSON.stringify({p:st.preset,s:st.strength,a:st.adj,c:st.custom,x:st.mix,ph:photos.map(p=>[p.id,p.look,p.match,p.skin,p.rot||0])});
 function commit(){storeLook();const s=snap();if(hist[hpos]===s)return;hist=hist.slice(0,hpos+1);hist.push(s);if(hist.length>60)hist.shift();hpos=hist.length-1;histUI();saveMeta()}
-async function restore(s){const o=JSON.parse(s);const rot0=photos[cur]?photos[cur].rot||0:0;
-  (o.ph||[]).forEach(([id,look,match,skin,rot])=>{const p=photos.find(p=>p.id===id);if(p){p.look=look?cloneLook(look):null;p.match=match;p.skin=skin;p.rot=rot}});
+/* Nur das zurücknehmen, was sich in diesem Schritt geändert hat – Änderungen an anderen Fotos bleiben unberührt */
+async function restore(s,from){const o=JSON.parse(s),f=from?JSON.parse(from):null;const rot0=photos[cur]?photos[cur].rot||0:0;
+  const fm=new Map((f&&f.ph||[]).map(e=>[e[0],e]));const J=JSON.stringify;
+  (o.ph||[]).forEach(e=>{const [id,look,match,skin,rot]=e,p=photos.find(p=>p.id===id);if(!p)return;const g=fm.get(id);
+    const ch=k=>!g||J(g[k])!==J(e[k]);
+    if(ch(1)&&id===photos[cur].id)p.look=look?cloneLook(look):null;if(ch(2))p.match=match;if(ch(3))p.skin=skin;if(ch(4))p.rot=rot});
   st.preset=o.p;st.strength=o.s;st.adj={...ZERO,...o.a};st.custom=o.c||null;st.mix=cloneMix(o.x);storeLook();
   if(photos[cur]&&(photos[cur].rot||0)!==rot0)await rebuildSrc();
   render();renderStrip();setTab(st.tab);saveMeta()}
 function histUI(){$('#undoBtn').disabled=hpos<=0;$('#redoBtn').disabled=hpos>=hist.length-1}
-$('#undoBtn').onclick=()=>{if(hpos>0){hpos--;restore(hist[hpos]);histUI();vib()}};
-$('#redoBtn').onclick=()=>{if(hpos<hist.length-1){hpos++;restore(hist[hpos]);histUI();vib()}};
+$('#undoBtn').onclick=()=>{if(hpos>0){hpos--;restore(hist[hpos],hist[hpos+1]);histUI();vib()}};
+$('#redoBtn').onclick=()=>{if(hpos<hist.length-1){hpos++;restore(hist[hpos],hist[hpos-1]);histUI();vib()}};
 
 /* ================= Favoriten & eigene Looks ================= */
 let favs=store.get('at-favs',[]),customs=store.get('at-looks',[]);const cThumbs={};
