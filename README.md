@@ -6,15 +6,14 @@ Läuft komplett im Browser, Fotos verlassen das Gerät nicht.
 **Live:** https://insta.micana.de
 
 ## Funktionen
-- 42 Looks in den Kategorien Signature, Neutral, Porträt, Fashion, Film und S/W
-- Hautschutz: Hauttöne bleiben natürlich, Haut glätten mit Kantenschutz
-- Farbsteuerung pro Farbbereich (Sättigung, Helligkeit, Farbton)
-- Eigene Looks speichern, Favoriten
-- Stapelbearbeitung: bis zu 30 Fotos mit gleichem Look, gemeinsamer Export
-- Retusche-Pinsel: Aufhellen, Abdunkeln, Glätten, Radierer
-- Feed-Vorschau (3er-Raster, bleibt gespeichert, bestehende Posts hinzufügbar)
-- Rückgängig/Wiederholen, Vorher-Vergleich (Bild gedrückt halten)
-- Installierbar und offline nutzbar (Service Worker)
+- 42 Looks (Signature, Neutral, Porträt, Fashion, Film, S/W) plus Vorschläge passend zum Foto
+- Hautschutz, Haut glätten, Farbsteuerung pro Farbbereich
+- Eigene Looks speichern, als Link teilen, Backup/Import; Favoriten
+- Stapelbearbeitung (bis 30 Fotos), eigener Look pro Foto, Stapel angleichen
+- Retusche: Reparieren, Aufhellen, Abdunkeln, Glätten, Radierer – mit Zoom
+- Feed planen (Drag & Drop), Vorher/Nachher-Bild, Look als .cube-LUT für Videos
+- Export Feed (1080 px) oder Original; Sitzung bleibt nach dem Schließen erhalten
+- Schnelle Vorschau per WebGL, installierbar und offline nutzbar
 
 ## Installation am iPhone
 Seite in Safari öffnen → Teilen → „Zum Home-Bildschirm“.

@@ -1,17 +1,20 @@
 # Atelier – Roadmap
 
-## Vorgemerkt
-1. **Export in Originalauflösung** – Wahl zwischen 1080 px (Feed) und Original
-2. **Look-Vorschläge** – Motiv erkennen (Pool, Strand, Studio, Stadt, Natur) und passende Looks oben anzeigen
-3. **Eigene Looks teilen** – Export/Import als Datei oder Link, Grundlage für Look-Pakete
-4. **Look pro Foto im Stapel** – einzelnen Fotos einen abweichenden Look geben
-5. **Zoom in der Retusche** – mit zwei Fingern zoomen und verschieben für feine Stellen
+## Umgesetzt (Nov 2026)
+- Export in Originalauflösung (bis 16 MP) oder Feed (1080 px)
+- Look-Vorschläge per Bildanalyse („Für dieses Foto“)
+- Eigene Looks als Link teilen, Backup/Import als Datei
+- Eigener Look pro Foto im Stapel
+- Zoom in der Retusche (zwei Finger)
+- Stapel angleichen (Helligkeit/Weißabgleich an aktuelles Foto)
+- Look als .cube-LUT für Videos
+- Reparatur-Pinsel (Flecken entfernen)
+- Feed planen per Drag & Drop, Export in Plan-Reihenfolge
+- Vorher/Nachher-Bild
+- WebGL-Vorschau (Look als 3D-LUT auf der GPU), JS-Engine für den finalen Export
+- Sitzung bleibt nach Schließen/Absturz erhalten (IndexedDB)
 
-## Weitere Ideen
-6. **Stapel angleichen** – Belichtung und Weißabgleich aller Fotos automatisch aneinander anpassen
-7. **Looks für Videos** – Look als .cube-LUT exportieren (z. B. für CapCut, VN, Lightroom)
-8. **Reparatur-Pinsel** – Pickel, Flecken und Fussel per Tippen entfernen
-9. **Feed-Planer** – Reihenfolge im 3er-Raster per Drag & Drop planen
-10. **Vorher/Nachher-Export** – Splitscreen-Bild oder kurzes Video als Content
-11. **Schnelle Engine (WebGL)** – Live-Vorschau in voller Auflösung, auch auf älteren iPhones
-12. **Backup** – eigene Looks und Favoriten als Datei sichern und wiederherstellen
+## Ideen
+- Vorher/Nachher als Video (Wischeffekt)
+- Export komplett über WebGL für schnellere Stapel in Originalgröße
+- Mehrere Looks nebeneinander vergleichen
