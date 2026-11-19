@@ -21,6 +21,13 @@
 - Hautton im Stapel angleichen
 - Einführung beim ersten Start (3 Schritte, im ⋯-Menü erneut aufrufbar)
 
+- Verlaufs- und Kreisfilter (Belichtung, Kontrast, Wärme, Sättigung)
+- Schärfen und Rauschminderung
+- Freie Tonkurve (RGB und einzelne Kanäle)
+- Weißabgleich-Pipette
+- Augen und Zähne aufhellen (Pinsel)
+- Person freistellen per KI (MediaPipe, auf dem Gerät): Hintergrund weichzeichnen/abdunkeln/entsättigen
+
 ## Offen
 - Impressum & Datenschutz für die öffentliche Seite
 - Looks zwischen Geräten synchronisieren
