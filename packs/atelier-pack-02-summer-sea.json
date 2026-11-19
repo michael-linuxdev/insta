@@ -1,0 +1,178 @@
+{
+ "app": "atelier",
+ "v": 1,
+ "pack": "Summer & Sea",
+ "description": "Pool, Meer und Strand – leuchtendes Wasser, warme Haut.",
+ "looks": [
+  {
+   "n": "Lagune",
+   "p": "Pool Blau",
+   "s": 100,
+   "a": {
+    "vibrance": 6
+   },
+   "x": {
+    "aqua": [
+     10,
+     4,
+     -4
+    ]
+   }
+  },
+  {
+   "n": "Ägäis",
+   "p": "Mittelmeer",
+   "s": 100,
+   "a": {
+    "warm": 2
+   },
+   "x": {
+    "blue": [
+     10,
+     -6,
+     0
+    ],
+    "orange": [
+     -10,
+     4,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Sonnenöl",
+   "p": "Golden Hour",
+   "s": 80,
+   "a": {
+    "warm": 4,
+    "glow": 6,
+    "skinlum": 4
+   },
+   "x": {
+    "orange": [
+     -4,
+     4,
+     -2
+    ],
+    "aqua": [
+     -10,
+     0,
+     6
+    ]
+   }
+  },
+  {
+   "n": "Strandhaus",
+   "p": "Sand",
+   "s": 100,
+   "a": {
+    "exposure": 4
+   },
+   "x": {
+    "aqua": [
+     -20,
+     6,
+     0
+    ],
+    "blue": [
+     -30,
+     4,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Riviera",
+   "p": "Tageslicht",
+   "s": 100,
+   "a": {
+    "contrast": 6,
+    "highlights": -10
+   },
+   "x": {
+    "blue": [
+     15,
+     -10,
+     0
+    ],
+    "aqua": [
+     15,
+     -4,
+     0
+    ],
+    "yellow": [
+     -10,
+     0,
+     0
+    ],
+    "orange": [
+     -12,
+     4,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Salzwasser",
+   "p": "Teal Film",
+   "s": 90,
+   "a": {
+    "fade": 4
+   },
+   "x": {
+    "orange": [
+     4,
+     4,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Mittagshitze",
+   "p": "Herbstgold",
+   "s": 60,
+   "a": {
+    "highlights": -14,
+    "vibrance": 4
+   },
+   "x": {
+    "blue": [
+     10,
+     -6,
+     0
+    ],
+    "aqua": [
+     10,
+     0,
+     0
+    ],
+    "orange": [
+     -12,
+     4,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Bootstag",
+   "p": "Cinema",
+   "s": 80,
+   "a": {
+    "exposure": 4,
+    "highlights": -12
+   },
+   "x": {
+    "aqua": [
+     8,
+     0,
+     0
+    ],
+    "orange": [
+     4,
+     4,
+     0
+    ]
+   }
+  }
+ ]
+}

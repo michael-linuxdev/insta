@@ -1,0 +1,153 @@
+{
+ "app": "atelier",
+ "v": 1,
+ "pack": "Night & City",
+ "description": "Abends, Blitz und Stadt – dunkle Tiefen, goldene Lichter.",
+ "looks": [
+  {
+   "n": "Goldlicht",
+   "p": "Low Key Gold",
+   "s": 70,
+   "a": {
+    "skinlum": 6,
+    "sat": -8
+   },
+   "x": {
+    "yellow": [
+     10,
+     6,
+     0
+    ],
+    "orange": [
+     -18,
+     4,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Blitzlicht",
+   "p": "Blitz Abend",
+   "s": 75,
+   "a": {
+    "warm": -4,
+    "sat": -6
+   },
+   "x": {
+    "orange": [
+     -16,
+     6,
+     0
+    ],
+    "red": [
+     -10,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Neon Noir",
+   "p": "Cinema",
+   "s": 100,
+   "a": {
+    "exposure": -6,
+    "contrast": 10,
+    "vignette": 10
+   },
+   "x": {
+    "blue": [
+     15,
+     -10,
+     0
+    ],
+    "aqua": [
+     10,
+     -6,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Asphalt",
+   "p": "Moody",
+   "s": 90,
+   "a": {
+    "clarity": 6
+   },
+   "x": {
+    "orange": [
+     6,
+     6,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Pariser Nacht",
+   "p": "Paris Grau",
+   "s": 100,
+   "a": {
+    "exposure": -4,
+    "warm": 6
+   },
+   "x": {
+    "yellow": [
+     20,
+     4,
+     -4
+    ]
+   }
+  },
+  {
+   "n": "Hotelbar",
+   "p": "Mocca",
+   "s": 80,
+   "a": {
+    "exposure": -6,
+    "contrast": 12,
+    "vignette": 12
+   },
+   "x": {
+    "orange": [
+     6,
+     4,
+     0
+    ],
+    "yellow": [
+     10,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Nacht S/W",
+   "p": "S/W Kontrast",
+   "s": 90,
+   "a": {
+    "grain": 4
+   }
+  },
+  {
+   "n": "Stadtlichter",
+   "p": "Editorial",
+   "s": 80,
+   "a": {
+    "glow": 10
+   },
+   "x": {
+    "yellow": [
+     15,
+     6,
+     0
+    ],
+    "orange": [
+     -12,
+     4,
+     0
+    ]
+   }
+  }
+ ]
+}

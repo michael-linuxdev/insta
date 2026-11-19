@@ -922,7 +922,7 @@ function toggleFav(i){const n=PRESETS[i].n;favs=isFav(i)?favs.filter(x=>x!==n):[
   toast(isFav(i)?`„${n}“ als Favorit gemerkt`:`„${n}“ aus Favoriten entfernt`);vib();pFilter()}
 function customState(c){let i=PRESETS.findIndex(p=>p.n===c.p);if(i<0)i=0;return{preset:i,strength:c.s,adj:{...ZERO,...c.a},mix:cloneMix(c.x)}}
 function uniqueName(n){let k=n,i=2;while(customs.some(c=>c.n===k))k=`${n} ${i++}`;return k}
-function addCustom(c){c.id=uid();c.n=uniqueName(String(c.n||'Look').slice(0,24));customs.unshift(c);store.set('at-looks',customs);thumbCustom(c);return c}
+function addCustom(c){c.id=uid();c.n=c.pk?String(c.n||'Look').slice(0,24):uniqueName(String(c.n||'Look').slice(0,24));if(c.pk)customs.push(c);else customs.unshift(c);store.set('at-looks',customs);thumbCustom(c);return c}
 async function saveLook(){
   const base=st.preset?PRESETS[st.preset].n:'Look';
   const name=await ask({title:'Look speichern',text:'Speichert Look, Stärke und alle Regler unter einem eigenen Namen.',input:uniqueName(`Mein ${base}`),ok:'Speichern'});
@@ -940,14 +940,15 @@ async function customMenu(c){
 /* Teilen / Import / Backup */
 const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const b64d=s=>decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
-function lookPayload(c){const o={n:c.n,p:c.p,s:c.s,a:Object.fromEntries(Object.entries(c.a||{}).filter(([k,v])=>v))};if(hasMix(c.x))o.x=c.x;return o}
+function lookPayload(c){const o={n:c.n,p:c.p,s:c.s,a:Object.fromEntries(Object.entries(c.a||{}).filter(([k,v])=>v))};if(hasMix(c.x))o.x=c.x;if(c.pk)o.pk=c.pk;return o}
 async function shareLook(c){
   if(!c){c={n:lookName()==='Original'?'Mein Look':lookName(),p:PRESETS[st.preset].n,s:st.strength,a:{...st.adj},x:cloneMix(st.mix)}}
   const url=location.origin+location.pathname+'#look='+b64e(JSON.stringify(lookPayload(c)));
   try{if(navigator.share){await navigator.share({title:`Atelier-Look „${c.n}“`,text:`Mein Atelier-Look „${c.n}“`,url});return}}catch(e){if(e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(url);toast('Link kopiert')}catch(_){toast('Teilen hier nicht möglich')}
 }
-async function importLookObj(o,quiet){if(!o||!o.p)return false;const c=addCustom({n:o.n||'Look',p:o.p,s:o.s??100,a:{...ZERO,...(o.a||{})},x:cloneMix(o.x)});if(!quiet)toast(`Look „${c.n}“ hinzugefügt`);return c}
+async function importLookObj(o,quiet,pk){if(!o||!o.p)return false;pk=pk||o.pk||null;if(pk&&customs.some(c=>c.pk===pk&&c.n===o.n))return false;
+  const c=addCustom({n:o.n||'Look',p:o.p,s:o.s??100,a:{...ZERO,...(o.a||{})},x:cloneMix(o.x),pk});if(!quiet)toast(`Look „${c.n}“ hinzugefügt`);return c}
 async function checkHashLook(){const m=location.hash.match(/^#look=(.+)$/);if(!m)return;
   try{const o=JSON.parse(b64d(m[1]));history.replaceState(null,'',location.pathname);
     if(await ask({title:'Look übernehmen?',text:`„${o.n}“ (Basis: ${o.p}) zu deinen eigenen Looks hinzufügen.`,ok:'Hinzufügen'})){const c=await importLookObj(o);if(c&&src)applyCustom(c);st.cat='Eigene';if(src)pFilter()}}
@@ -959,9 +960,9 @@ async function exportBackup(){const data={app:'atelier',v:1,date:new Date().toIS
   if(ok){await shareFiles([f]);return}if(await saveBlob(blob,f.name))toast(`${customs.length} Looks gesichert`)}
 $('#lookFile').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
   try{const o=JSON.parse(await f.text());let n=0;
-    if(o.looks){for(const l of o.looks)if(await importLookObj(l,true))n++;if(o.favs)favs=[...new Set([...favs,...o.favs])];store.set('at-favs',favs)}
+    if(o.looks){for(const l of o.looks)if(await importLookObj(l,true,o.pack))n++;if(o.favs)favs=[...new Set([...favs,...o.favs])];store.set('at-favs',favs)}
     else if(await importLookObj(o,true))n++;
-    toast(n?`${n} Look${n>1?'s':''} geladen`:'Keine Looks gefunden');if(src){st.cat='Eigene';pFilter()}}catch(_){toast('Datei konnte nicht gelesen werden')}});
+    toast(n?(o.pack?`Paket „${o.pack}“ geladen (${n} Looks)`:`${n} Look${n>1?'s':''} geladen`):'Keine neuen Looks gefunden');if(src){st.cat=o.pack?'pk:'+o.pack:'Eigene';pFilter()}}catch(_){toast('Datei konnte nicht gelesen werden')}});
 
 /* ================= Dialog ================= */
 let dlgRes=null;
@@ -1008,7 +1009,8 @@ function setFill(el){const mn=+el.min,mx=+el.max,v=+el.value,p=(v-mn)/(mx-mn)*10
 const ICON_SAVE='<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>';
 function pFilter(){
   const sx=$('#tr')?$('#tr').scrollLeft:null;
-  const cats=['Vorschläge','Alle'].concat(customs.length?['Eigene']:[],favs.length?['Favoriten']:[],CATS.slice(1));
+  const packs=[...new Set(customs.filter(c=>c.pk).map(c=>c.pk))];
+  const cats=['Vorschläge','Alle'].concat(customs.some(c=>!c.pk)?['Eigene']:[],packs.map(p=>'pk:'+p),favs.length?['Favoriten']:[],CATS.slice(1));
   if(!cats.includes(st.cat))st.cat='Alle';
   const cu=st.custom&&customs.find(c=>c.id===st.custom);
   panel.innerHTML='<div class="row" id="cr"></div><div class="row" id="tr"></div>'+
@@ -1016,7 +1018,7 @@ function pFilter(){
      (st.preset&&!cu?`<button class="tb${isFav(st.preset)?' on':''}" id="fb" title="Favorit">${isFav(st.preset)?'★':'☆'}</button>`:'')+
      `<button class="tb" id="svb" title="Als eigenen Look speichern">${ICON_SAVE}</button></div>`
      :'<div class="lookbar"><span class="mini">Look antippen · gedrückt halten = Favorit</span></div>');
-  cats.forEach(c=>{const b=document.createElement('button');b.className='chip'+(st.cat===c?' on':'');b.textContent=c==='Favoriten'?'★ Favoriten':c==='Vorschläge'?'✦ Für dieses Foto':c;
+  cats.forEach(c=>{const b=document.createElement('button');b.className='chip'+(st.cat===c?' on':'');b.textContent=c==='Favoriten'?'★ Favoriten':c==='Vorschläge'?'✦ Für dieses Foto':c.startsWith('pk:')?'◆ '+c.slice(3):c;
     b.onclick=()=>{st.cat=c;saveMeta();pFilter();$('#tr').scrollLeft=0;vib()};$('#cr').appendChild(b)});
   const row=$('#tr');
   const tile=(key,label,on,extra='')=>{const b=document.createElement('button');b.className='th'+(on?' on':'');b.dataset.k=key;
@@ -1030,7 +1032,9 @@ function pFilter(){
     b.onclick=()=>{if(b._l)return;if(st.preset!==i||st.custom){st.preset=i;st.strength=100;st.custom=null;render();commit();flash(pr.n);vib();pFilter()}}};
   if(st.cat==='Eigene'){
     const add=document.createElement('button');add.className='th';add.innerHTML='<div class="im" style="background:var(--card)"><span class="plus">+</span></div><span class="lb">Speichern</span>';add.onclick=saveLook;row.appendChild(add);
-    customs.forEach(c=>{const b=tile('c'+c.id,c.n,st.custom===c.id);longPress(b,()=>customMenu(c));b.onclick=()=>{if(!b._l&&st.custom!==c.id)applyCustom(c)}});
+    customs.filter(c=>!c.pk).forEach(c=>{const b=tile('c'+c.id,c.n,st.custom===c.id);longPress(b,()=>customMenu(c));b.onclick=()=>{if(!b._l&&st.custom!==c.id)applyCustom(c)}});
+  }else if(st.cat.startsWith('pk:')){const pk=st.cat.slice(3);
+    customs.filter(c=>c.pk===pk).forEach(c=>{const b=tile('c'+c.id,c.n,st.custom===c.id);longPress(b,()=>customMenu(c));b.onclick=()=>{if(!b._l&&st.custom!==c.id)applyCustom(c)}});
   }else if(st.cat==='Vorschläge'){presetTile(0);(photos[cur]&&photos[cur].sugg||[]).forEach(presetTile)}
   else PRESETS.forEach((pr,i)=>{const inCat=st.cat==='Alle'||(st.cat==='Favoriten'?isFav(i):pr.cat===st.cat);if(!i||inCat)presetTile(i)});
   if(sx!==null)row.scrollLeft=sx;else{const on=row.querySelector('.on');if(on)row.scrollLeft=Math.max(0,on.offsetLeft-row.clientWidth/2+37)}

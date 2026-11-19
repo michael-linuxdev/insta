@@ -1,0 +1,103 @@
+{
+ "app": "atelier",
+ "v": 1,
+ "pack": "Quiet Luxury",
+ "description": "Beige, Greige und Creme – ruhiger, hochwertiger Feed.",
+ "looks": [
+  {
+   "n": "Greige Pure",
+   "p": "Greige",
+   "s": 100,
+   "a": {
+    "fade": 2
+   }
+  },
+  {
+   "n": "Cashmere",
+   "p": "Latte",
+   "s": 90,
+   "a": {
+    "exposure": 3,
+    "smooth": 8
+   },
+   "x": {
+    "orange": [
+     -4,
+     6,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Marmor",
+   "p": "Clean",
+   "s": 100,
+   "a": {
+    "contrast": 4,
+    "sat": -4
+   }
+  },
+  {
+   "n": "Espresso",
+   "p": "Mocca",
+   "s": 90,
+   "a": {
+    "contrast": 6
+   },
+   "x": {
+    "orange": [
+     -6,
+     -2,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Leinen",
+   "p": "Sand",
+   "s": 80,
+   "a": {
+    "fade": 6,
+    "sat": -8
+   },
+   "x": {
+    "green": [
+     -30,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Champagne",
+   "p": "Champagner",
+   "s": 100,
+   "a": {
+    "glow": 6
+   }
+  },
+  {
+   "n": "Concrete",
+   "p": "Beton",
+   "s": 100,
+   "a": {
+    "clarity": 4
+   },
+   "x": {
+    "orange": [
+     -4,
+     6,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Sepia Soft",
+   "p": "S/W Warm",
+   "s": 90,
+   "a": {
+    "fade": 6
+   }
+  }
+ ]
+}

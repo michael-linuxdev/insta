@@ -1,0 +1,170 @@
+{
+ "app": "atelier",
+ "v": 1,
+ "pack": "Studio Skin",
+ "description": "Für Studio, Porträt und Close-ups – makellose, natürliche Haut.",
+ "looks": [
+  {
+   "n": "Porzellan",
+   "p": "Studio Glow",
+   "s": 90,
+   "a": {
+    "exposure": 4,
+    "highlights": -10,
+    "smooth": 15,
+    "skinlum": 10
+   },
+   "x": {
+    "orange": [
+     -8,
+     8,
+     0
+    ],
+    "red": [
+     -10,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Honig",
+   "p": "Bronze",
+   "s": 75,
+   "a": {
+    "warm": 2,
+    "glow": 6,
+    "skinlum": 6
+   },
+   "x": {
+    "orange": [
+     -8,
+     4,
+     -3
+    ],
+    "yellow": [
+     -15,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Seide",
+   "p": "Soft Skin",
+   "s": 80,
+   "a": {
+    "exposure": 3,
+    "fade": 4
+   },
+   "x": {
+    "orange": [
+     -4,
+     10,
+     0
+    ],
+    "aqua": [
+     -30,
+     0,
+     0
+    ],
+    "blue": [
+     -30,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Grau Editorial",
+   "p": "Studio Grau",
+   "s": 100,
+   "a": {
+    "contrast": 8,
+    "clarity": 6
+   },
+   "x": {
+    "orange": [
+     -6,
+     6,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Rosé",
+   "p": "Pfirsich",
+   "s": 85,
+   "a": {
+    "tint": 6
+   },
+   "x": {
+    "red": [
+     -10,
+     4,
+     -4
+    ],
+    "orange": [
+     -4,
+     8,
+     -2
+    ],
+    "magenta": [
+     -20,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Glow Up",
+   "p": "Beauty Hell",
+   "s": 80,
+   "a": {
+    "glow": 12,
+    "smooth": 10
+   },
+   "x": {
+    "orange": [
+     0,
+     8,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Kontur",
+   "p": "Editorial",
+   "s": 65,
+   "a": {
+    "contrast": 4,
+    "clarity": 8,
+    "smooth": 20,
+    "vignette": 6,
+    "warm": -2
+   },
+   "x": {
+    "orange": [
+     -10,
+     4,
+     0
+    ],
+    "red": [
+     -8,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Monochrom",
+   "p": "S/W Porträt",
+   "s": 100,
+   "a": {
+    "contrast": 6,
+    "fade": 6,
+    "grain": 4
+   }
+  }
+ ]
+}

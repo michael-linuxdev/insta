@@ -1,0 +1,118 @@
+{
+ "app": "atelier",
+ "v": 1,
+ "pack": "Film & Soft",
+ "description": "Analoger Film – Korn, matte Tiefen, weiche Farben.",
+ "looks": [
+  {
+   "n": "Warm 400",
+   "p": "Film Warm",
+   "s": 100,
+   "a": {},
+   "x": {
+    "orange": [
+     4,
+     4,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Kühl 160",
+   "p": "Film Kühl",
+   "s": 100,
+   "a": {}
+  },
+  {
+   "n": "Sommer 98",
+   "p": "Vintage",
+   "s": 80,
+   "a": {
+    "exposure": 4
+   },
+   "x": {
+    "green": [
+     -20,
+     0,
+     -6
+    ]
+   }
+  },
+  {
+   "n": "Sofortbild",
+   "p": "Pfirsich",
+   "s": 100,
+   "a": {
+    "fade": 10,
+    "vignette": 10,
+    "warm": 4
+   },
+   "x": {
+    "aqua": [
+     -20,
+     6,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Diafilm",
+   "p": "Magazin",
+   "s": 100,
+   "a": {
+    "contrast": 6,
+    "grain": 6
+   },
+   "x": {
+    "blue": [
+     10,
+     -6,
+     0
+    ],
+    "red": [
+     -8,
+     0,
+     0
+    ],
+    "orange": [
+     -14,
+     4,
+     0
+    ]
+   }
+  },
+  {
+   "n": "Matt & Weich",
+   "p": "Film Warm",
+   "s": 70,
+   "a": {
+    "fade": 12,
+    "smooth": 15,
+    "contrast": -6
+   }
+  },
+  {
+   "n": "Olivfilm",
+   "p": "Olive",
+   "s": 100,
+   "a": {
+    "grain": 8
+   },
+   "x": {
+    "green": [
+     0,
+     0,
+     -6
+    ]
+   }
+  },
+  {
+   "n": "Silber",
+   "p": "S/W Matt",
+   "s": 100,
+   "a": {
+    "contrast": 6
+   }
+  }
+ ]
+}
