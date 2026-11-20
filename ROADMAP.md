@@ -22,6 +22,7 @@
 - Einführung beim ersten Start (3 Schritte, im ⋯-Menü erneut aufrufbar)
 
 - Schärfen und Rauschminderung
+- Automatisch angleichen: jedes Foto wird vor dem Look neutralisiert (Farbstich, Helligkeit, zu kräftige Farben), für jeden Look und den ganzen Stapel
 - Freie Tonkurve (RGB und einzelne Kanäle)
 - Weißabgleich-Pipette
 - Augen und Zähne aufhellen (Pinsel)

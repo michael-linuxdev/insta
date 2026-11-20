@@ -632,7 +632,25 @@ function lookOf(i){const p=photos[i];return p&&p.look?p.look:gLook}
 function storeLook(){const l=curLook();if(photos[cur]&&photos[cur].look)photos[cur].look=l;else gLook=l}
 function loadLook(i){Object.assign(st,cloneLook(lookOf(i)))}
 function curMasks(){const p=photos[cur];return p&&p.masks}
-function effParams(){const P=params(),p=photos[cur],m=p&&p.match;if(m){P.exposure+=m.exposure;P.warm+=m.warm;P.tint+=m.tint}if(p&&p.skin)P.skinShift=p.skin;return P}
+/* ================= Automatisch angleichen ================= */
+/* Misst jedes Foto (Farbstich, Helligkeit, Sättigung pro Farbbereich) und bringt es vor dem Look auf eine ruhige, neutrale Basis */
+function autoStats(p){if(p._auto&&p._autoKey===p.thumb)return p._auto;const c=p.smallH,w=96,h=Math.max(8,Math.round(96*c.height/c.width)),t=document.createElement('canvas');t.width=w;t.height=h;
+  const x=t.getContext('2d',{willReadFrequently:true});x.drawImage(c,0,0,w,h);const d=x.getImageData(0,0,w,h).data,n=w*h;
+  let gr=0,gg=0,gb=0,gn=0,L=0;const bs=new Array(8).fill(0),bc=new Array(8).fill(0);
+  for(let i=0;i<d.length;i+=4){const r=d[i],g=d[i+1],b=d[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(.299*r+.587*g+.114*b)/255,s=mx?(mx-mn)/mx:0;L+=l;
+    if(l>.15&&l<.88&&s<.45){gr+=r;gg+=g;gb+=b;gn++}
+    if(s>.12&&l>.08&&l<.96){let hu=mx===r?((g-b)/(mx-mn))%6:mx===g?(b-r)/(mx-mn)+2:(r-g)/(mx-mn)+4;hu*=60;if(hu<0)hu+=360;
+      let bi=0;for(let k=0;k<8;k++)if(hu>=CENT[k]-(k?(CENT[k]-CENT[k-1])/2:15))bi=k;if(hu>=337.5)bi=0;bs[bi]+=s;bc[bi]++}}
+  L/=n;const o={warm:0,tint:0,exp:0,mix:{}};
+  if(gn>n*.05){gr/=gn;gg/=gn;gb/=gn;const a=(gb-gr)/(gr+gb);o.warm=clamp(a/.0012*.6,-35,35);o.tint=clamp((1-gr*(1+a)/gg)/.0008*.5,-25,25)}
+  o.exp=clamp(Math.log2(.46/Math.max(.05,L))/1.2*100*.6,-30,30);
+  const T=.30;BANDS.forEach((b,k)=>{if(bc[k]<n*.01)return;const m=bs[k]/bc[k];let v=(T/m-1)*100*.85;v=b==='orange'?clamp(v,-20,10):b==='red'?clamp(v,-35,15):clamp(v,-75,25);if(Math.abs(v)>3)o.mix[b]=[Math.round(v),0,0]});
+  p._auto=o;p._autoKey=p.thumb;return o}
+function applyAuto(P,p,k){if(!p||!k)return P;const a=autoStats(p);P.warm+=a.warm*k;P.tint+=a.tint*k;P.exposure+=a.exp*k;
+  P.mix=addMix(P.mix||{},a.mix,k);if(!hasMix(P.mix))P.mix=null;return P}
+const autoK=()=>st.mix&&st.mix._auto?st.mix._auto/100:0;
+function effParams(){const P=params(),p=photos[cur],m=p&&p.match;if(m){P.exposure+=m.exposure;P.warm+=m.warm;P.tint+=m.tint}if(p&&p.skin)P.skinShift=p.skin;
+  applyAuto(P,p,autoK());return P}
 /* Rendern mit Look/Quelle eines anderen Fotos (Export, Feed) */
 async function withPhoto(i,srcC,fn){const ks=src,kc=cur,kl=curLook();src=srcC;cur=i;loadLook(i);try{return await fn()}finally{src=ks;cur=kc;Object.assign(st,cloneLook(kl))}}
 
@@ -1082,7 +1100,7 @@ function makeThumbs(){
   let j=0;(function next(){if(gen!==thumbGen)return;if(j>=jobs.length){if(st.tab==='filter')fillThumbs();return}
     const t0=performance.now();while(j<jobs.length&&performance.now()-t0<14)jobs[j++]();if(st.tab==='filter')fillThumbs();setTimeout(next,0)})();
 }
-function thumbFor(c,x,P){x.drawImage(tBase,0,0);process(c,x,120,150,P,null);return c.toDataURL('image/jpeg',.82)}
+function thumbFor(c,x,P){x.drawImage(tBase,0,0);applyAuto(P,photos[cur],autoK());process(c,x,120,150,P,null);return c.toDataURL('image/jpeg',.82)}
 function thumbCustom(cu){if(!tBase)return;const c=document.createElement('canvas');c.width=120;c.height=150;cThumbs[cu.id]=thumbFor(c,c.getContext('2d',{willReadFrequently:true}),params(customState(cu)))}
 function fillThumbs(){document.querySelectorAll('.th[data-k]').forEach(b=>{const k=b.dataset.k,im=b.querySelector('.im');if(im.querySelector('img'))return;
   const u=k[0]==='c'?cThumbs[k.slice(1)]:thumbs[+k.slice(1)];if(u)im.innerHTML=`<img src="${u}" alt="">`})}
@@ -1097,7 +1115,8 @@ function setTab(t){
   ({filter:pFilter,adjust:pAdjust,brush:pBrush,crop:pCrop})[t]();
 }
 function setFill(el){const mn=+el.min,mx=+el.max,v=+el.value,p=(v-mn)/(mx-mn)*100,z=(0-mn)/(mx-mn)*100;el.style.setProperty('--f',p+'%');el.style.setProperty('--s',(mn<0?z:0)+'%')}
-const ICON_SAVE='<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>';
+const ICON_SAVE='<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>',ICON_AUTO='<svg viewBox="0 0 24 24"><path d="M12 3v18M5 8h14M7 8l-3 7h6zM17 8l-3 7h6z"/></svg>';
+function setAuto(v){st.mix=st.mix||{};if(v)st.mix._auto=v;else delete st.mix._auto;st.custom=null;render();commit();makeThumbs();if(st.tab==='filter')pFilter();else if(st.tab==='adjust')pAdjust()}
 function pFilter(){
   const sx=$('#tr')?$('#tr').scrollLeft:null,cx=$('#cr')?$('#cr').scrollLeft:null;
   const packs=[...new Set(customs.filter(c=>c.pk).map(c=>c.pk))];
@@ -1107,7 +1126,7 @@ function pFilter(){
   panel.innerHTML='<div class="row" id="cr"></div><div class="row" id="tr"></div>'+
    ((st.preset||cu)?`<div class="lookbar"><input type="range" id="ss" min="0" max="100" step="1" aria-label="Stärke"><span class="mini" id="sv"></span>`+
      (st.preset&&!cu?`<button class="tb${isFav(st.preset)?' on':''}" id="fb" title="Favorit">${isFav(st.preset)?'★':'☆'}</button>`:'')+
-     `<button class="tb" id="svb" title="Als eigenen Look speichern">${ICON_SAVE}</button></div>`
+     `<button class="tb${autoK()?' on':''}" id="aub" title="Automatisch angleichen">${ICON_AUTO}</button><button class="tb" id="svb" title="Als eigenen Look speichern">${ICON_SAVE}</button></div>`
      :'<div class="lookbar"><span class="mini">Look antippen · gedrückt halten = Favorit</span></div>');
   cats.forEach(c=>{const b=document.createElement('button');b.className='chip'+(st.cat===c?' on':'');b.textContent=c==='Favoriten'?'★ Favoriten':c==='Vorschläge'?'✦ Für dieses Foto':c.startsWith('pk:')?'◆ '+c.slice(3):c;
     b.onclick=()=>{st.cat=c;saveMeta();pFilter();$('#tr').scrollLeft=0;vib()};$('#cr').appendChild(b)});
@@ -1133,11 +1152,13 @@ function pFilter(){
     ss.oninput=()=>{st.strength=+ss.value;st.custom=null;sv.textContent=ss.value+' %';setFill(ss);bubble(ss.value+' %');render(true)};
     ss.onchange=()=>{render();commit();pFilter()};
     ss.ondblclick=()=>{st.strength=100;render();commit();pFilter()};
-    if($('#fb'))$('#fb').onclick=()=>toggleFav(st.preset);$('#svb').onclick=saveLook;}
+    if($('#fb'))$('#fb').onclick=()=>toggleFav(st.preset);$('#svb').onclick=saveLook;
+    $('#aub').onclick=()=>{const on=!autoK();setAuto(on?80:0);toast(on?'Automatisch angleichen: an – jedes Foto wird vor dem Look neutralisiert':'Automatisch angleichen: aus');vib()};}
   const cr=$('#cr'),con=cr.querySelector('.on');if(cx!==null)cr.scrollLeft=cx;
   if(con){const l=con.offsetLeft,r=l+con.offsetWidth;if(cx===null||l<cr.scrollLeft+8||r>cr.scrollLeft+cr.clientWidth-8)cr.scrollLeft=Math.max(0,l-40)}
 }
 const GROUPS=[
+ {n:'Angleichen',auto:true},
  {n:'Licht',k:['exposure','contrast','highlights','shadows']},
  {n:'Farbe',k:['warm','tint','sat','vibrance','bluesat','greensat']},
  {n:'Haut',k:['smooth','skinlum']},
@@ -1154,17 +1175,22 @@ let grp=0;
 function pAdjust(){
   panel.innerHTML='<div class="row" id="gr"></div><div id="sls"></div>';
   const gr=$('#gr');
-  const isSet=i=>{const g=GROUPS[i];return g.curve?hasCurve(st.mix):g.mix?hasMix(st.mix):g.rot?!!(photos[cur]&&photos[cur].rot):g.k.some(k=>st.adj[k])};
+  const isSet=i=>{const g=GROUPS[i];return g.auto?!!autoK():g.curve?hasCurve(st.mix):g.mix?hasMix(st.mix):g.rot?!!(photos[cur]&&photos[cur].rot):g.k.some(k=>st.adj[k])};
   const lab=i=>GROUPS[i].n+(isSet(i)?'<span class="dot"></span>':'');
   GROUPS.forEach((g,i)=>{const b=document.createElement('button');b.className='chip'+(grp===i?' on':'');b.innerHTML=lab(i);b.onclick=()=>{grp=i;pAdjust();vib()};gr.appendChild(b)});
   const rs=document.createElement('button');rs.className='link';rs.textContent='Zurücksetzen';
-  rs.onclick=async()=>{const g=GROUPS[grp];if(g.curve)delete st.mix._curve;else if(g.mix){const c=st.mix._curve;st.mix={};if(c)st.mix._curve=c}else if(g.rot){photos[cur].rot=0;await rebuildSrc()}else g.k.forEach(k=>st.adj[k]=0);st.custom=null;render();commit();renderStrip();pAdjust();toast(`${g.n} zurückgesetzt`)};gr.appendChild(rs);
+  rs.onclick=async()=>{const g=GROUPS[grp];if(g.auto){setAuto(0);return}if(g.curve)delete st.mix._curve;else if(g.mix){const keep={};for(const k in st.mix)if(k[0]==='_')keep[k]=st.mix[k];st.mix=keep}else if(g.rot){photos[cur].rot=0;await rebuildSrc()}else g.k.forEach(k=>st.adj[k]=0);st.custom=null;render();commit();renderStrip();pAdjust();toast(`${g.n} zurückgesetzt`)};gr.appendChild(rs);
   const box=$('#sls');
   const slider=(label,min,max,step,val,fmt,onIn,onCh)=>{const d=document.createElement('div');d.className='sl'+(+val?' set':'');
     d.innerHTML=`<label>${label}</label><input type="range" min="${min}" max="${max}" step="${step}" value="${val}"><span class="val">${fmt(val)}</span>`;
     const r=d.querySelector('input'),v=d.querySelector('.val');setFill(r);
     r.oninput=()=>{v.textContent=fmt(r.value);setFill(r);d.classList.toggle('set',!!+r.value);onIn(+r.value)};r.onchange=()=>{onCh(+r.value);gr.children[grp].innerHTML=lab(grp)};
     const reset=()=>{r.value=0;r.oninput();r.onchange()};d.querySelector('label').onclick=reset;r.ondblclick=reset;box.appendChild(d);return r};
+  if(GROUPS[grp].auto){let t=0;
+    slider('Angleichen',0,100,1,Math.round(autoK()*100),v=>v+' %',v=>{st.mix=st.mix||{};if(v)st.mix._auto=v;else delete st.mix._auto;st.custom=null;bubble('Angleichen '+v+' %');render(true)},()=>{render();commit();makeThumbs()});
+    const a=autoStats(photos[cur]),bands=Object.entries(a.mix).filter(([b,v])=>v[0]<-8).map(([b])=>MIXN[b].split(' ')[0]);
+    const m=document.createElement('div');m.className='mini';m.style.cssText='padding:4px 16px 10px;line-height:1.5';
+    m.textContent='Gleicht jedes Foto vor dem Look an: Farbstich, Helligkeit und zu kräftige Farben'+(bands.length?` (hier: ${bands.join(', ')})`:'')+'. Haut bleibt geschützt. Gilt für jeden Look und alle Fotos im Stapel.';box.appendChild(m);return}
   if(GROUPS[grp].curve){curveEditor(box);return}
   if(GROUPS[grp].n==='Farbe'){const pb=document.createElement('div');pb.className='row';pb.style.padding='0 16px 2px';
     pb.innerHTML='<button class="chip" id="wbPick">⌖ Weißabgleich-Pipette</button>';box.appendChild(pb);$('#wbPick').onclick=()=>{pickWB=true;toast('Tippe auf eine Stelle, die grau oder weiß sein soll');vib()}}
